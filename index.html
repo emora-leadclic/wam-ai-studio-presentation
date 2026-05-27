@@ -232,6 +232,52 @@
       text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
     }
     .cover-meta { font-size: 11px; color: var(--text-dim); letter-spacing: .5px; }
+
+/* ==================== SLIDE 09 — UNIT ECONOMICS ==================== */
+.ue-metrics {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 14px;
+}
+.ue-metric {
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; padding: 20px 22px; text-align: center;
+}
+.ue-metric-value {
+  font-family: var(--font-title); font-size: 36px; font-weight: 400;
+  color: var(--accent); line-height: 1; margin-bottom: 6px;
+}
+.ue-metric-label {
+  font-size: 11px; color: var(--text-muted); letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.ue-funnel {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; padding: 16px 22px;
+}
+.ue-funnel-step {
+  flex: 1; text-align: center;
+}
+.ue-funnel-step-title { font-size: 15px; font-weight: 500; color: var(--text); }
+.ue-funnel-step-sub   { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.ue-funnel-arrow { font-size: 20px; color: var(--accent); flex-shrink: 0; }
+.ue-funnel-rate   { font-size: 12px; color: var(--text-dim); flex-shrink: 0; text-align: center; line-height: 1.4; }
+.ue-table { width: 100%; border-collapse: collapse; }
+.ue-table th {
+  font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-dim); padding: 8px 16px; text-align: right; border-bottom: 1px solid var(--surface-border);
+}
+.ue-table th:first-child { text-align: left; }
+.ue-table td {
+  font-size: 14px; color: var(--text-muted); padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.04); text-align: right;
+}
+.ue-table td:first-child { text-align: left; color: var(--text); }
+.ue-table tr.ue-highlight td { color: var(--accent); font-weight: 500; }
+.ue-table-wrap {
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; overflow: hidden;
+}
+.ue-col-conservador, .ue-col-objetivo { opacity: 0; }
   </style>
 </head>
 <body>
@@ -495,6 +541,91 @@
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
+
+<!-- == SLIDE 09: UNIT ECONOMICS (special) == -->
+<div class="slide" id="slide-09">
+  <div class="content-top">
+    <div class="section-tag" data-a>Los números que sostienen el modelo</div>
+    <div class="slide-title" style="font-size:clamp(28px,3.5vw,42px);" data-a>
+      Por cada Assessment vendido,<br><em>48 K de facturación esperada</em>
+    </div>
+  </div>
+
+  <div class="content-body" style="gap:14px;justify-content:flex-start;">
+    <!-- Row 1: key metrics -->
+    <div class="ue-metrics" data-a>
+      <div class="ue-metric">
+        <div class="ue-metric-value" data-countup="15000" data-suffix="€">0€</div>
+        <div class="ue-metric-label">Precio cerrado</div>
+      </div>
+      <div class="ue-metric">
+        <div class="ue-metric-value" data-countup="53" data-suffix="%">0%</div>
+        <div class="ue-metric-label">Margen bruto</div>
+      </div>
+      <div class="ue-metric">
+        <div class="ue-metric-value" data-countup="7000" data-suffix="€">0€</div>
+        <div class="ue-metric-label">Coste de entrega</div>
+      </div>
+    </div>
+
+    <!-- Row 2: funnel -->
+    <div class="ue-funnel" data-a>
+      <div class="ue-funnel-step">
+        <div class="ue-funnel-step-title">Assessment</div>
+        <div class="ue-funnel-step-sub">15.000 €</div>
+      </div>
+      <div class="ue-funnel-arrow">→</div>
+      <div class="ue-funnel-rate">Conversión<br><span style="color:var(--accent)">20–33%</span></div>
+      <div class="ue-funnel-arrow">→</div>
+      <div class="ue-funnel-step">
+        <div class="ue-funnel-step-title">Proyecto derivado</div>
+        <div class="ue-funnel-step-sub">~100.000 € · 40% margen</div>
+      </div>
+    </div>
+
+    <!-- Row 3: scenario table -->
+    <div class="ue-table-wrap" data-a>
+      <table class="ue-table">
+        <thead>
+          <tr>
+            <th>Año 1 · 15 Assessments</th>
+            <th class="ue-col-conservador">Conservador</th>
+            <th class="ue-col-objetivo">Objetivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Facturación directa</td>
+            <td class="ue-col-conservador">225 K</td>
+            <td class="ue-col-objetivo">225 K</td>
+          </tr>
+          <tr>
+            <td>Proyectos derivados</td>
+            <td class="ue-col-conservador">300 K (×3)</td>
+            <td class="ue-col-objetivo">500 K (×5)</td>
+          </tr>
+          <tr class="ue-highlight">
+            <td>Total facturación</td>
+            <td class="ue-col-conservador">525 K</td>
+            <td class="ue-col-objetivo">725 K</td>
+          </tr>
+          <tr>
+            <td>Margen bruto</td>
+            <td class="ue-col-conservador">240 K (46%)</td>
+            <td class="ue-col-objetivo">320 K (44%)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="accent-line" data-a>"Incluso en el escenario conservador, el Studio devuelve 1.75x el presupuesto invertido en margen bruto durante el primer año."</div>
+  </div>
+
+  <div class="slide-footer" data-a>
+    <div class="slide-num">09 / 15</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
   </div>
   <div id="progress"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
