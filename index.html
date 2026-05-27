@@ -1027,9 +1027,85 @@
       }
     }
 
-    // Per-slide hooks (implemented in Task 11)
-    function onSlideEnter(index, slideEl) {}
-    function onSlideLeave(index, slideEl) {}
+    // ==================== GSAP ANIMATIONS ====================
+
+    function startBreathing() {
+      const title = document.getElementById('cover-title');
+      const glow  = document.getElementById('cover-glow');
+      if (title) gsap.to(title, { scale: 1.018, duration: 3.2, ease: 'power1.inOut', yoyo: true, repeat: -1, transformOrigin: 'left center' });
+      if (glow)  gsap.to(glow,  { opacity: .9, scale: 1.1, duration: 2.8, ease: 'power1.inOut', yoyo: true, repeat: -1, delay: .6 });
+    }
+
+    function countUp(el) {
+      const target = parseFloat(el.dataset.countup);
+      const suffix = el.dataset.suffix || '';
+      const isFloat = !Number.isInteger(target);
+      const obj = { val: 0 };
+      gsap.to(obj, {
+        val: target,
+        duration: 0.8,
+        ease: 'power2.out',
+        onUpdate() {
+          const v = isFloat ? obj.val.toFixed(1) : Math.round(obj.val);
+          const display = target >= 1000
+            ? Number(v).toLocaleString('es-ES')
+            : v;
+          el.textContent = display + suffix;
+        }
+      });
+    }
+
+    function animateTimeline() {
+      const fill  = document.getElementById('timeline-fill');
+      const nodes = [
+        document.getElementById('tl-node-1'),
+        document.getElementById('tl-node-2'),
+        document.getElementById('tl-node-3')
+      ].filter(Boolean);
+
+      if (!fill || !nodes.length) return;
+
+      const tl = gsap.timeline();
+      tl.to(fill,     { scaleX: 1, duration: .6, ease: 'power2.inOut' });
+      tl.to(nodes[0], { opacity: 1, duration: .35, ease: 'power2.out' }, '-=.2');
+      tl.to(nodes[1], { opacity: 1, duration: .35, ease: 'power2.out' }, '-=.1');
+      tl.to(nodes[2], { opacity: 1, duration: .35, ease: 'power2.out' }, '-=.1');
+    }
+
+    function animateUnitEconomics(slideEl) {
+      // CountUp on all metric values
+      slideEl.querySelectorAll('[data-countup]').forEach(el => countUp(el));
+
+      // Reveal table columns with stagger
+      const colC = slideEl.querySelectorAll('.ue-col-conservador');
+      const colO = slideEl.querySelectorAll('.ue-col-objetivo');
+      gsap.to(colC, { opacity: 1, duration: .3, stagger: .05, delay: .4, ease: 'power2.out' });
+      gsap.to(colO, { opacity: 1, duration: .3, stagger: .05, delay: .7, ease: 'power2.out' });
+    }
+
+    // Per-slide hooks
+    function onSlideEnter(index, slideEl) {
+      // index is 0-based; slide 09 = index 8, slide 12 = index 11
+      if (index === 8)  animateUnitEconomics(slideEl);
+      if (index === 11) animateTimeline();
+    }
+
+    function onSlideLeave(index, slideEl) {
+      if (index === 8) {
+        // Reset countup displays
+        slideEl.querySelectorAll('[data-countup]').forEach(el => {
+          el.textContent = '0' + (el.dataset.suffix || '');
+        });
+        // Reset table columns
+        gsap.set(slideEl.querySelectorAll('.ue-col-conservador, .ue-col-objetivo'), { opacity: 0 });
+      }
+      if (index === 11) {
+        const fill  = document.getElementById('timeline-fill');
+        const nodes = ['tl-node-1','tl-node-2','tl-node-3'].map(id => document.getElementById(id)).filter(Boolean);
+        if (fill)  gsap.set(fill,  { scaleX: 0 });
+        if (nodes.length) gsap.set(nodes, { opacity: 0 });
+      }
+    }
 
     // Init
     function init() {
@@ -1040,6 +1116,7 @@
         else          { gsap.set(s, { opacity: 0, xPercent: 100 }); }
       });
       updateProgress();
+      startBreathing();
       document.fonts.ready.then(() => {
         const els = slides[0] ? slides[0].querySelectorAll('[data-a]') : [];
         if (els.length) gsap.fromTo(els, { opacity: 0 }, { opacity: 1, duration: 0.45, stagger: 0.12, ease: 'power2.out', clearProps: 'opacity' });
