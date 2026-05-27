@@ -119,7 +119,114 @@
   <div id="progress"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script>
-    // JS goes here
+    const TOTAL_SLIDES = 16;
+    let currentIndex = 0;
+    let isAnimating  = false;
+
+    function getSlides() { return document.querySelectorAll('.slide'); }
+    function getDots()   { return document.querySelectorAll('.dot'); }
+
+    function updateProgress() {
+      getDots().forEach((d, i) => d.classList.toggle('is-active', i === currentIndex));
+    }
+
+    function goToSlide(targetIndex, direction) {
+      if (isAnimating) return;
+      if (targetIndex < 0 || targetIndex >= TOTAL_SLIDES) return;
+      if (targetIndex === currentIndex) return;
+
+      onSlideLeave(currentIndex, getSlides()[currentIndex]);
+
+      isAnimating = true;
+      const slides    = getSlides();
+      const fromSlide = slides[currentIndex];
+      const toSlide   = slides[targetIndex];
+      if (!fromSlide || !toSlide) { isAnimating = false; return; }
+
+      const dir = direction !== undefined ? direction : (targetIndex > currentIndex ? 1 : -1);
+      const toEls = toSlide.querySelectorAll('[data-a]');
+      if (toEls.length) gsap.set(toEls, { opacity: 0 });
+
+      gsap.set(toSlide, { xPercent: dir * 100, opacity: 1 });
+      toSlide.classList.add('is-active');
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          fromSlide.classList.remove('is-active');
+          gsap.set(fromSlide, { xPercent: -dir * 100, opacity: 0 });
+          currentIndex = targetIndex;
+          isAnimating  = false;
+          updateProgress();
+          onSlideEnter(targetIndex, toSlide);
+        },
+        onInterrupt: () => { isAnimating = false; }
+      });
+      tl.to(fromSlide, { xPercent: -dir * 100, duration: 0.5, ease: 'power2.inOut' }, 0);
+      tl.to(toSlide,   { xPercent: 0,           duration: 0.5, ease: 'power2.inOut' }, 0);
+      if (toEls.length) {
+        tl.to(toEls, { opacity: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out', clearProps: 'opacity' }, 0.15);
+      }
+    }
+
+    function goNext() { goToSlide(currentIndex + 1,  1); }
+    function goPrev() { goToSlide(currentIndex - 1, -1); }
+
+    // Keyboard
+    document.addEventListener('keydown', e => {
+      if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); goNext(); }
+      if (['ArrowLeft','ArrowUp'].includes(e.key))        { e.preventDefault(); goPrev(); }
+    });
+
+    // Click
+    document.getElementById('presentation').addEventListener('click', e => {
+      if (e.target.closest('.dot')) return;
+      e.clientX > window.innerWidth / 2 ? goNext() : goPrev();
+    });
+
+    // Touch
+    let touchStartX = 0, touchStartY = 0;
+    document.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].clientX;
+      touchStartY = e.changedTouches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) dx < 0 ? goNext() : goPrev();
+    }, { passive: true });
+
+    // Progress dots
+    function buildProgress() {
+      const container = document.getElementById('progress');
+      container.innerHTML = '';
+      for (let i = 0; i < TOTAL_SLIDES; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i === 0 ? ' is-active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        container.appendChild(dot);
+      }
+    }
+
+    // Per-slide hooks (implemented in Task 11)
+    function onSlideEnter(index, slideEl) {}
+    function onSlideLeave(index, slideEl) {}
+
+    // Init
+    function init() {
+      buildProgress();
+      const slides = getSlides();
+      slides.forEach((s, i) => {
+        if (i === 0) { s.classList.add('is-active'); gsap.set(s, { opacity: 1, xPercent: 0 }); }
+        else          { gsap.set(s, { opacity: 0, xPercent: 100 }); }
+      });
+      updateProgress();
+      document.fonts.ready.then(() => {
+        const els = slides[0] ? slides[0].querySelectorAll('[data-a]') : [];
+        if (els.length) gsap.fromTo(els, { opacity: 0 }, { opacity: 1, duration: 0.45, stagger: 0.12, ease: 'power2.out', clearProps: 'opacity' });
+      });
+    }
+
+    init();
   </script>
 </body>
 </html>
