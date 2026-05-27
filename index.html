@@ -322,6 +322,26 @@
 .timeline-card ul li  { font-size: 13px; color: var(--text-muted); padding-left: 12px; position: relative; line-height: 1.4; }
 .timeline-card ul li::before { content: '–'; position: absolute; left: 0; color: var(--accent); }
 .timeline-decision    { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--surface-border); }
+/* ==================== SLIDE 15 — CLOSING ==================== */
+#slide-15 { overflow: hidden; align-items: center; justify-content: center; text-align: center; }
+.cierre-glow {
+  position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 300px;
+  background: radial-gradient(ellipse, rgba(255,126,255,.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+.cierre-quote {
+  font-family: var(--font-title); font-style: italic;
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 1.15; color: var(--text); max-width: 700px; margin-bottom: 16px;
+}
+.cierre-sub {
+  font-size: 15px; color: var(--text-muted); margin-bottom: 40px;
+}
+.cierre-wam {
+  position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px; opacity: .3;
+}
   </style>
 </head>
 <body>
@@ -892,11 +912,34 @@
     <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
   </div>
 </div>
+
+<!-- == SLIDE 15: CLOSING == -->
+<div class="slide" id="slide-15">
+  <div class="cierre-glow"></div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;">
+    <div class="section-tag" style="justify-content:center;" data-a>—</div>
+    <div class="cierre-quote" data-a>Hablemos.</div>
+    <div class="cierre-sub" data-a>No es una propuesta cerrada. Es la base de una conversación.</div>
+    <div style="font-size:12px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;" data-a>WAM AI Studio · Estrategia 2026</div>
+  </div>
+
+  <div class="cierre-wam" data-a>
+    <svg style="height:22px;width:auto;display:block;" viewBox="0 0 616.94 183.34" xmlns="http://www.w3.org/2000/svg">
+      <path d="M248.48,183.34L292.23,0h64.96l43.75,183.34h-36.15l-8.91-39.28h-62.34l-8.9,39.28h-36.16ZM300.87,111.05h47.42l-21.22-93.76h-4.72l-21.48,93.76ZM.16,10.47c-.89,37.86-2.99,126.53,30.25,160.47,9.32,9.51,20.6,14.32,33.54,14.32h.16c16.7-.05,32.53-10.52,45.8-29.94,15.22,19.48,32.97,29.94,51.4,29.94,13.72,0,25.65-5.07,35.44-15.06,29.65-30.28,32.33-97.64,31.02-159.54-.09-4.34-.16-7.96-.16-10.66h-23.21c0,2.83.08,6.63.18,11.15.67,31.57,2.43,115.42-24.41,142.82-5.41,5.52-11.4,8.1-18.85,8.1-13.03,0-26.88-10.52-38.96-29.27,11.25-25.06,18.16-55.99,18.12-81.54-.02-14.71-2.29-26.76-6.74-35.81-5.96-12.12-15.92-18.78-28.07-18.78-11.47,0-20.91,5.97-26.61,16.8-4.29,8.16-6.46,19.04-6.46,32.31,0,27.03,8.93,60.63,23.29,87.68.04.06.08.14.11.2-9.92,17.9-21.55,28.35-31.96,28.39h-.09c-6.65,0-12.03-2.34-16.95-7.36C20.61,127.75,22.61,42.95,23.36,11.02c.11-4.61.2-8.27.2-11.03H.35c0,2.48-.09,6.02-.19,10.49ZM95.82,45.78c0-4.33.48-25.9,9.86-25.9,8.51,0,11.57,16.92,11.58,31.41.03,16.53-3.28,35.68-9,53.5-7.75-19.73-12.44-41.4-12.44-58.99h0ZM616.94.77l-.76,4.07c-1.53,5.77-2.68,11.15-3.44,16.15-.76,5-1.15,10.29-1.15,15.89v109.34c0,5.6.38,10.89,1.15,15.89.76,5,1.91,10.39,3.44,16.15l.76,4.07v1.01h-38.4v-1.01l.76-4.07c1.36-5.76,2.46-11.15,3.3-16.15.84-5,1.27-10.3,1.27-15.89V28.57l-59.24,154.77h-13.98l-60.03-154.38c-.18,2.56-.27,5.2-.27,7.92v95.1c0,7.63.81,15.13,2.42,22.5,1.61,7.37,3.69,14.79,6.23,22.24.34,1.01.67,1.96,1.02,2.8.34.86.59,1.7.76,2.54v1.27h-31.27v-1.27c.17-.84.42-1.7.76-2.54.34-.84.67-1.78,1.02-2.8,2.37-7.46,4.41-14.87,6.1-22.24,1.7-7.38,2.54-14.88,2.54-22.5V36.88c0-9.67-2.2-20.34-6.61-32.04l-1.53-3.81V.27h7.67,0s28.73-.01,28.73-.01l58.35,149.37L583.87.03v-.03h33.07v.77Z" fill="#FFFFFF"/>
+    </svg>
+  </div>
+
+  <div class="slide-footer" style="position:relative;z-index:1;" data-a>
+    <div class="slide-num">15 / 15</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
   </div>
   <div id="progress"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script>
-    const TOTAL_SLIDES = 16;
+    const TOTAL_SLIDES = 15;
     let currentIndex = 0;
     let isAnimating  = false;
 
