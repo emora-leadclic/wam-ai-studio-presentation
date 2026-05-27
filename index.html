@@ -278,6 +278,50 @@
   border-radius: 12px; overflow: hidden;
 }
 .ue-col-conservador, .ue-col-objetivo { opacity: 0; }
+
+/* ==================== SLIDE 12 — TIMELINE ==================== */
+.timeline-wrap {
+  display: flex; align-items: flex-start; gap: 0;
+  position: relative; flex: 1; min-height: 0;
+}
+.timeline-track {
+  position: absolute; top: 32px; left: 0; right: 0; height: 2px;
+  background: var(--surface-border);
+  transform-origin: left center;
+}
+.timeline-track-fill {
+  position: absolute; top: 0; left: 0; right: 0; height: 100%;
+  background: var(--accent); opacity: .6;
+  transform: scaleX(0); transform-origin: left center;
+}
+.timeline-node {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: flex-start; padding-top: 52px; opacity: 0;
+}
+.timeline-dot {
+  position: absolute; top: 24px;
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid var(--accent); background: var(--bg);
+  box-shadow: 0 0 10px rgba(255,126,255,.4);
+}
+.timeline-node:nth-child(2) .timeline-dot { left: 0%; transform: translateX(-50%); }
+.timeline-node:nth-child(3) .timeline-dot { left: 50%; transform: translateX(-50%); }
+.timeline-node:nth-child(4) .timeline-dot { left: 100%; transform: translateX(-50%); }
+.timeline-month {
+  font-size: 11px; font-weight: 500; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+}
+.timeline-card {
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; padding: 18px 20px; width: 90%;
+  transition: border-color .2s;
+}
+.timeline-card:hover { border-color: rgba(255,126,255,.3); }
+.timeline-card-title  { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 10px; }
+.timeline-card ul     { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.timeline-card ul li  { font-size: 13px; color: var(--text-muted); padding-left: 12px; position: relative; line-height: 1.4; }
+.timeline-card ul li::before { content: '–'; position: absolute; left: 0; color: var(--accent); }
+.timeline-decision    { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--surface-border); }
   </style>
 </head>
 <body>
@@ -701,6 +745,71 @@
   </div>
   <div class="slide-footer" data-a>
     <div class="slide-num">11 / 15</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+
+<!-- == SLIDE 12: LAS FASES (special timeline) == -->
+<div class="slide" id="slide-12">
+  <div class="content-top">
+    <div class="section-tag" data-a>Cómo lo gobernamos</div>
+    <div class="slide-title" data-a>
+      Tres hitos. Tres decisiones. <em>Sin drama.</em>
+    </div>
+  </div>
+
+  <div class="content-body" style="justify-content:flex-start;">
+    <div class="timeline-wrap" data-a>
+      <div class="timeline-track">
+        <div class="timeline-track-fill" id="timeline-fill"></div>
+      </div>
+
+      <div class="timeline-node" id="tl-node-1">
+        <div class="timeline-dot"></div>
+        <div class="timeline-month">Mes 3</div>
+        <div class="timeline-card">
+          <div class="timeline-card-title">Señal de capacidad</div>
+          <ul>
+            <li>Producto construido y operativo</li>
+            <li>5 conversaciones de venta abiertas</li>
+            <li>Equipo formado en tecnologías core</li>
+          </ul>
+          <div class="timeline-decision">Check operativo, no decisión</div>
+        </div>
+      </div>
+
+      <div class="timeline-node" id="tl-node-2">
+        <div class="timeline-dot"></div>
+        <div class="timeline-month">Mes 6</div>
+        <div class="timeline-card">
+          <div class="timeline-card-title">Señal de mercado</div>
+          <ul>
+            <li>2-3 Assessments cerrados</li>
+            <li>1 proyecto derivado en negociación</li>
+            <li>Segundo producto en diseño</li>
+          </ul>
+          <div class="timeline-decision">Decisión: seguir, ajustar o reajustar embudo</div>
+        </div>
+      </div>
+
+      <div class="timeline-node" id="tl-node-3">
+        <div class="timeline-dot"></div>
+        <div class="timeline-month">Mes 12</div>
+        <div class="timeline-card">
+          <div class="timeline-card-title">Señal de negocio</div>
+          <ul>
+            <li>12-15 Assessments vendidos</li>
+            <li>3-5 proyectos derivados cerrados</li>
+            <li>Unit economics confirmada o desmentida</li>
+          </ul>
+          <div class="timeline-decision">Decisión: escalar, mantener o cerrar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer" data-a>
+    <div class="slide-num">12 / 15</div>
     <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
   </div>
 </div>
