@@ -135,13 +135,13 @@
       if (targetIndex < 0 || targetIndex >= TOTAL_SLIDES) return;
       if (targetIndex === currentIndex) return;
 
-      onSlideLeave(currentIndex, getSlides()[currentIndex]);
-
-      isAnimating = true;
       const slides    = getSlides();
       const fromSlide = slides[currentIndex];
       const toSlide   = slides[targetIndex];
-      if (!fromSlide || !toSlide) { isAnimating = false; return; }
+      if (!fromSlide || !toSlide) return;
+
+      isAnimating = true;
+      onSlideLeave(currentIndex, fromSlide);
 
       const dir = direction !== undefined ? direction : (targetIndex > currentIndex ? 1 : -1);
       const toEls = toSlide.querySelectorAll('[data-a]');
