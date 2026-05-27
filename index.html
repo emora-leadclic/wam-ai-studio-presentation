@@ -103,6 +103,7 @@
       :root { --slide-pad-x: 28px; --slide-pad-y: 32px; }
       .slide-title { font-size: clamp(28px, 8vw, 44px) !important; }
       .cards-3, .cards-2 { grid-template-columns: 1fr !important; gap: 12px; }
+      .cards-4 { grid-template-columns: 1fr !important; gap: 12px; }
       .two-col { grid-template-columns: 1fr !important; gap: 12px; }
       #progress { bottom: 16px; }
     }
@@ -110,6 +111,107 @@
       :root { --slide-pad-x: 20px; --slide-pad-y: 24px; }
       .nav-hint { display: none; }
     }
+
+    /* ==================== WAM LOGO ==================== */
+    .wam-logo { display: flex; align-items: center; gap: 10px; }
+    .wam-bar  { width: 4px; height: 24px; background: var(--accent); border-radius: 2px; }
+    .wam-wordmark { font-family: var(--font-body); font-weight: 500; font-size: 12px; letter-spacing: 4px; color: var(--text); }
+
+    /* ==================== SECTION TAG (kicker) ==================== */
+    .section-tag {
+      font-size: 10px; font-weight: 500; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--accent);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-tag::before {
+      content: ''; display: block;
+      width: 24px; height: 2px;
+      background: var(--accent); border-radius: 1px; flex-shrink: 0;
+    }
+
+    /* ==================== SLIDE TITLE ==================== */
+    .slide-title {
+      font-family: var(--font-title);
+      font-size: 54px; font-weight: 400;
+      line-height: 1.1; letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    .slide-title em { font-style: italic; color: var(--accent); }
+
+    /* ==================== SLIDE FOOTER ==================== */
+    .slide-footer {
+      display: flex; align-items: center;
+      justify-content: space-between; padding-bottom: 8px;
+    }
+    .slide-num { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+    .nav-hint  { display: flex; align-items: center; gap: 6px; }
+    .nav-key   {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 4px; padding: 2px 8px;
+      font-size: 10px; color: var(--text-dim);
+    }
+
+    /* ==================== CONTENT WRAPPERS ==================== */
+    .content-top  { display: flex; flex-direction: column; gap: 20px; }
+    .content-body {
+      flex: 1; min-height: 0; overflow: hidden;
+      display: flex; flex-direction: column;
+      justify-content: center; gap: 24px;
+    }
+
+    /* ==================== CARDS ==================== */
+    .cards-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+    .cards-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .cards-4 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 24px;
+      transition: transform .2s ease, border-color .2s ease;
+      cursor: default;
+    }
+    .card:hover { transform: translateY(-3px); border-color: rgba(255,126,255,.3); }
+    .card-eyebrow {
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+    }
+    .card-title  { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
+    .card-body   { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+
+    /* ==================== TWO-COL ==================== */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    .col-block {
+      background: var(--surface); border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 24px;
+    }
+    .col-block-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 14px; letter-spacing: .3px; }
+    .col-block ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .col-block ul li {
+      font-size: 14px; color: var(--text-muted); line-height: 1.5;
+      padding-left: 14px; position: relative;
+    }
+    .col-block ul li::before { content: '–'; position: absolute; left: 0; color: var(--accent); }
+
+    /* ==================== ACCENT LINE (quote) ==================== */
+    .accent-line {
+      font-family: var(--font-title); font-style: italic;
+      font-size: 18px; color: var(--accent);
+      border-left: 2px solid var(--accent);
+      padding-left: 16px; line-height: 1.4; margin-top: 16px;
+    }
+
+    /* ==================== SETUP STEPS (numbered) ==================== */
+    .setup-steps { display: flex; flex-direction: column; gap: 16px; }
+    .setup-step  {
+      display: flex; align-items: flex-start; gap: 20px;
+      background: var(--surface); border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 20px 24px;
+      transition: border-color .2s;
+    }
+    .setup-step:hover { border-color: rgba(255,126,255,.3); }
+    .step-num { font-family: var(--font-title); font-style: italic; font-size: 32px; color: var(--accent); line-height: 1; flex-shrink: 0; width: 32px; }
+    .step-content-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    .step-content-body  { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
   </style>
 </head>
 <body>
