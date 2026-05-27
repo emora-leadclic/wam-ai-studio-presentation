@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAM AI Studio — Propuesta</title>
+  <style>
+    /* ==================== FONTS ==================== */
+    @font-face {
+      font-family: 'TiemposFine';
+      src: url('fonts/TiemposFine-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'TiemposFine';
+      src: url('fonts/TiemposFine-Italic.woff2') format('woff2');
+      font-weight: 400; font-style: italic; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: url('fonts/Inter-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: url('fonts/Inter-Medium.woff2') format('woff2');
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+
+    /* ==================== VARIABLES ==================== */
+    :root {
+      --bg:             #080808;
+      --text:           #ffffff;
+      --text-muted:     #555555;
+      --text-dim:       #333333;
+      --accent:         #FF7EFF;
+      --accent-glow:    rgba(255, 126, 255, 0.15);
+      --accent-glow-lg: rgba(255, 126, 255, 0.08);
+      --surface:        rgba(255, 255, 255, 0.03);
+      --surface-border: rgba(255, 255, 255, 0.07);
+      --font-title:     'TiemposFine', Georgia, serif;
+      --font-body:      'Inter', system-ui, -apple-system, sans-serif;
+      --slide-pad-x:    72px;
+      --slide-pad-y:    52px;
+      --transition-dur: 0.5s;
+    }
+
+    /* ==================== RESET & BASE ==================== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ==================== SLIDE ENGINE ==================== */
+    #presentation {
+      position: relative;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+    }
+    .slide {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 28px;
+      padding: var(--slide-pad-y) var(--slide-pad-x);
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+    .slide.is-active { pointer-events: auto; }
+
+    /* ==================== PROGRESS ==================== */
+    #progress {
+      position: fixed;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 7px; align-items: center;
+      z-index: 200;
+    }
+    .dot {
+      border-radius: 50%;
+      background: #222;
+      transition: width .3s, height .3s, background .3s, box-shadow .3s;
+      cursor: pointer;
+      width: 6px; height: 6px;
+    }
+    .dot.is-active {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(255,126,255,.6);
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+      :root { --slide-pad-x: 28px; --slide-pad-y: 32px; }
+      .slide-title { font-size: clamp(28px, 8vw, 44px) !important; }
+      .cards-3, .cards-2 { grid-template-columns: 1fr !important; gap: 12px; }
+      .two-col { grid-template-columns: 1fr !important; gap: 12px; }
+      #progress { bottom: 16px; }
+    }
+    @media (max-width: 480px) {
+      :root { --slide-pad-x: 20px; --slide-pad-y: 24px; }
+      .nav-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="presentation">
+    <!-- slides go here -->
+  </div>
+  <div id="progress"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script>
+    // JS goes here
+  </script>
+</body>
+</html>
