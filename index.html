@@ -297,7 +297,18 @@
 .ue-table tr.ue-highlight td { color: var(--accent); font-weight: 500; }
 .ue-table-wrap {
   background: var(--surface); border: 1px solid var(--surface-border);
-  border-radius: 12px; overflow: hidden;
+  border-radius: 12px; overflow-x: hidden; overflow-y: auto;
+  max-height: 22vh;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,126,255,.25) transparent;
+}
+.ue-table-wrap::-webkit-scrollbar { width: 3px; }
+.ue-table-wrap::-webkit-scrollbar-track { background: transparent; }
+.ue-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(255,126,255,.25); border-radius: 2px;
+}
+.ue-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,126,255,.5);
 }
 .ue-col-conservador, .ue-col-objetivo { opacity: 0; }
 
