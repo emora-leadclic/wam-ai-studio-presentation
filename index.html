@@ -54,19 +54,13 @@
       color: var(--text);
       font-family: var(--font-body);
       -webkit-font-smoothing: antialiased;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     /* ==================== SLIDE ENGINE ==================== */
     #presentation {
       position: relative;
-      /* 16:9 letterbox — never taller than viewport, never wider than viewport */
-      width: min(100vw, 177.78vh);
-      height: min(100vh, 56.25vw);
+      width: 100vw; height: 100vh;
       overflow: hidden;
-      flex-shrink: 0;
     }
     .slide {
       position: absolute;
@@ -85,7 +79,7 @@
 
     /* ==================== PROGRESS ==================== */
     #progress {
-      position: absolute;
+      position: fixed;
       bottom: 28px; left: 50%;
       transform: translateX(-50%);
       display: flex; gap: 7px; align-items: center;
@@ -306,12 +300,6 @@
   border-radius: 12px; overflow: hidden;
 }
 .ue-col-conservador, .ue-col-objetivo { opacity: 0; }
-.ue-two-col {
-  display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px;
-  flex: 1; min-height: 0; align-items: start;
-}
-.ue-left  { display: flex; flex-direction: column; gap: 12px; }
-.ue-right { display: flex; flex-direction: column; gap: 10px; }
 
 /* ==================== SLIDE 12 — TIMELINE ==================== */
 .timeline-wrap {
@@ -690,91 +678,85 @@
   </div>
 
   <div class="content-body" style="gap:12px;justify-content:flex-start;">
-    <div class="ue-two-col" data-a>
-
-      <!-- LEFT: metrics + funnel -->
-      <div class="ue-left">
-        <div class="ue-metrics">
-          <div class="ue-metric">
-            <div class="ue-metric-value" data-countup="15000" data-suffix="€">0€</div>
-            <div class="ue-metric-label">Precio Assessment</div>
-          </div>
-          <div class="ue-metric">
-            <div class="ue-metric-value">~100.000 €</div>
-            <div class="ue-metric-label">Ticket medio proyecto derivado</div>
-          </div>
-          <div class="ue-metric">
-            <div class="ue-metric-value" data-countup="3" data-suffix="">0</div>
-            <div class="ue-metric-label">Capacidad delivery actual</div>
-          </div>
-        </div>
-
-        <div class="ue-funnel">
-          <div class="ue-funnel-step">
-            <div class="ue-funnel-step-title">Assessment</div>
-            <div class="ue-funnel-step-sub">15.000 €</div>
-          </div>
-          <div class="ue-funnel-arrow">→</div>
-          <div class="ue-funnel-rate">Conversión<br><span style="color:var(--accent)">20–33%</span></div>
-          <div class="ue-funnel-arrow">→</div>
-          <div class="ue-funnel-step">
-            <div class="ue-funnel-step-title">Proyecto derivado</div>
-            <div class="ue-funnel-step-sub">~100.000 €</div>
-          </div>
-        </div>
-
-        <div class="accent-line" style="margin-top:0;">"Año 1 demuestra el modelo. Año 2, con IP construida, es donde el coste marginal de cada proyecto cae y el margen escala."</div>
+    <!-- Row 1: key metrics -->
+    <div class="ue-metrics" data-a>
+      <div class="ue-metric">
+        <div class="ue-metric-value" data-countup="15000" data-suffix="€">0€</div>
+        <div class="ue-metric-label">Precio Assessment</div>
       </div>
-
-      <!-- RIGHT: table + note -->
-      <div class="ue-right">
-        <div class="ue-table-wrap">
-          <table class="ue-table">
-            <thead>
-              <tr>
-                <th>Año 1 · 15 Assessments</th>
-                <th class="ue-col-conservador">Conservador (20%)</th>
-                <th class="ue-col-objetivo">Objetivo (33%)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Facturación Assessments</td>
-                <td class="ue-col-conservador">225 K</td>
-                <td class="ue-col-objetivo">225 K</td>
-              </tr>
-              <tr>
-                <td>Facturación proyectos derivados</td>
-                <td class="ue-col-conservador">300 K (×3)</td>
-                <td class="ue-col-objetivo">500 K (×5)</td>
-              </tr>
-              <tr class="ue-highlight">
-                <td>Facturación total</td>
-                <td class="ue-col-conservador">525 K</td>
-                <td class="ue-col-objetivo">725 K</td>
-              </tr>
-              <tr>
-                <td>Inversión Studio</td>
-                <td class="ue-col-conservador">300 K</td>
-                <td class="ue-col-objetivo">300 K</td>
-              </tr>
-              <tr class="ue-highlight">
-                <td>Resultado año 1</td>
-                <td class="ue-col-conservador">+225 K</td>
-                <td class="ue-col-objetivo">+425 K</td>
-              </tr>
-              <tr class="ue-highlight">
-                <td>Ratio facturación/inversión</td>
-                <td class="ue-col-conservador">1,75x</td>
-                <td class="ue-col-objetivo">2,4x</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div style="font-size:11px;color:var(--text-dim);line-height:1.5;">Capacidad delivery con equipo actual: hasta 5-6 proyectos derivados/año. Escalar a 8-10 en año 2 requiere evaluar ampliación con pipeline en la mano.</div>
+      <div class="ue-metric">
+        <div class="ue-metric-value">~100.000 €</div>
+        <div class="ue-metric-label">Ticket medio proyecto derivado</div>
       </div>
-
+      <div class="ue-metric">
+        <div class="ue-metric-value" data-countup="3" data-suffix="">0</div>
+        <div class="ue-metric-label">Capacidad delivery actual</div>
+      </div>
     </div>
+
+    <!-- Row 2: funnel -->
+    <div class="ue-funnel" data-a>
+      <div class="ue-funnel-step">
+        <div class="ue-funnel-step-title">Assessment</div>
+        <div class="ue-funnel-step-sub">15.000 €</div>
+      </div>
+      <div class="ue-funnel-arrow">→</div>
+      <div class="ue-funnel-rate">Conversión<br><span style="color:var(--accent)">20–33%</span></div>
+      <div class="ue-funnel-arrow">→</div>
+      <div class="ue-funnel-step">
+        <div class="ue-funnel-step-title">Proyecto derivado</div>
+        <div class="ue-funnel-step-sub">~100.000 €</div>
+      </div>
+    </div>
+
+    <!-- Row 3: scenario table -->
+    <div class="ue-table-wrap" data-a>
+      <table class="ue-table">
+        <thead>
+          <tr>
+            <th>Año 1 · 15 Assessments</th>
+            <th class="ue-col-conservador">Conservador (20%)</th>
+            <th class="ue-col-objetivo">Objetivo (33%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Facturación Assessments</td>
+            <td class="ue-col-conservador">225 K</td>
+            <td class="ue-col-objetivo">225 K</td>
+          </tr>
+          <tr>
+            <td>Facturación proyectos derivados</td>
+            <td class="ue-col-conservador">300 K (×3)</td>
+            <td class="ue-col-objetivo">500 K (×5)</td>
+          </tr>
+          <tr class="ue-highlight">
+            <td>Facturación total</td>
+            <td class="ue-col-conservador">525 K</td>
+            <td class="ue-col-objetivo">725 K</td>
+          </tr>
+          <tr>
+            <td>Inversión Studio</td>
+            <td class="ue-col-conservador">300 K</td>
+            <td class="ue-col-objetivo">300 K</td>
+          </tr>
+          <tr class="ue-highlight">
+            <td>Resultado año 1</td>
+            <td class="ue-col-conservador">+225 K</td>
+            <td class="ue-col-objetivo">+425 K</td>
+          </tr>
+          <tr class="ue-highlight">
+            <td>Ratio facturación/inversión</td>
+            <td class="ue-col-conservador">1,75x</td>
+            <td class="ue-col-objetivo">2,4x</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="font-size:11px;color:var(--text-dim);line-height:1.5;" data-a>Capacidad delivery con equipo actual: hasta 5-6 proyectos derivados/año. Escalar a 8-10 en año 2 requiere evaluar ampliación con pipeline en la mano.</div>
+
+    <div class="accent-line" data-a>"Año 1 demuestra el modelo. Año 2, con IP construida, es donde el coste marginal de cada proyecto cae y el margen escala."</div>
   </div>
 
   <div class="slide-footer" data-a>
