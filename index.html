@@ -168,9 +168,31 @@
       background: var(--surface); border: 1px solid var(--surface-border);
       border-radius: 12px; padding: 24px;
       transition: transform .2s ease, border-color .2s ease;
-      cursor: default;
+      cursor: default; position: relative;
     }
     .card:hover { transform: translateY(-3px); border-color: rgba(255,126,255,.3); }
+    /* Card info tooltip */
+    .card-info-icon {
+      position: absolute; top: 12px; right: 12px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(255,126,255,.1); border: 1px solid rgba(255,126,255,.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--accent); font-style: normal; cursor: default;
+    }
+    .card-tooltip {
+      position: absolute; inset: 0; border-radius: 12px;
+      background: rgba(8,8,8,.97); border: 1px solid rgba(255,126,255,.25);
+      padding: 18px 20px; opacity: 0; pointer-events: none;
+      transition: opacity .2s; overflow-y: auto; z-index: 10;
+    }
+    .card:hover .card-tooltip { opacity: 1; pointer-events: auto; transform: none; }
+    .card-tooltip-header { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+    .card-tooltip-item { margin-bottom: 10px; }
+    .card-tooltip-item:last-child { margin-bottom: 0; }
+    .card-tooltip-num { font-size: 10px; color: var(--accent); font-weight: 500; margin-bottom: 2px; }
+    .card-tooltip-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .card-tooltip-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 2px; }
+    .card-tooltip-body { font-size: 10px; color: var(--text-dim); line-height: 1.4; }
     .card-eyebrow {
       font-size: 10px; font-weight: 500; letter-spacing: 2px;
       text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
@@ -370,7 +392,7 @@
       </div>
 
       <div class="slide-footer" data-a>
-        <div class="cover-meta">Enric · [fecha] · Confidencial</div><!-- TODO: replace [fecha] before presenting -->
+        <div class="cover-meta">Enric Mora · 01/06/2026</div>
         <div class="nav-hint">
           <span class="nav-key">←</span><span class="nav-key">→</span>
           <span style="font-size:10px;color:var(--text-dim);margin-left:4px;">navegar</span>
@@ -387,11 +409,26 @@
           Es una propuesta para <em>proteger el margen</em><br>en los próximos 18 meses.
         </div>
       </div>
-      <div class="content-body" style="justify-content:center;gap:18px;">
-        <div data-a style="display:flex;flex-direction:column;gap:14px;">
-          <div style="font-size:16px;color:var(--text);line-height:1.5;">Lo que ya he construido en solitario — Enric, Anna, Sira — convertido en una unidad que vende producto cerrado al mid-market.</div>
-          <div style="font-size:16px;color:var(--text);line-height:1.5;">Antes de que lo haga otro.</div>
-          <div style="font-size:16px;color:var(--text);line-height:1.5;">Hoy te pido mandato, no presupuesto definitivo.</div>
+      <div class="content-body" style="gap:16px;">
+        <div class="setup-steps" data-a>
+          <div class="setup-step">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-content-body">Convertir lo que ya he construido en solitario — Enric, Anna, Sira — en el primer catálogo industrializado del Studio, y construir productos nuevos validados con el consejo senior.</div>
+            </div>
+          </div>
+          <div class="setup-step">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-content-body">Hay un hueco en el mid-market — y nosotros somos quien mejor puede ocuparlo.</div>
+            </div>
+          </div>
+          <div class="setup-step">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-content-body">Hoy traigo cómo lo construimos y por dónde empezamos.</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="slide-footer" data-a>
@@ -523,8 +560,8 @@
           </div>
           <div class="card">
             <div class="card-eyebrow">Aceleradores</div>
-            <div class="card-title">Plug &amp; play con precio cerrado</div>
-            <div class="card-body">IP reutilizable. Margen escalable proyecto a proyecto.</div>
+            <div class="card-title">Componentes reutilizables con precio cerrado</div>
+            <div class="card-body">IP propia que reduce el tiempo de entrega y protege el margen proyecto a proyecto.</div>
           </div>
           <div class="card">
             <div class="card-eyebrow">Soluciones ad-hoc</div>
@@ -552,19 +589,15 @@
         <div style="font-size:15px;color:var(--text-muted);line-height:1.65;max-width:680px;" data-a>
           Lo que hoy llamamos "WAM Innovation" es un conjunto de productos desarrollados desde Connect. Han demostrado valor pero viven dispersos, sin dirección comercial unificada.
         </div>
-        <div class="two-col" data-a>
-          <div class="col-block">
-            <div class="col-block-title">Lo que cambia con el Studio</div>
-            <ul>
-              <li>Estos productos pasan a ser el primer catálogo industrializado del Studio</li>
-              <li>Dejan de ser experimentos de Connect y pasan a ser activos transversales que cualquier práctica puede vender</li>
-              <li>Demuestran al cliente que no estamos aprendiendo — estamos escalando</li>
-            </ul>
-          </div>
-          <div class="col-block" style="display:flex;align-items:center;">
-            <div class="accent-line" style="margin-top:0;">"No te estoy pidiendo presupuesto para empezar a innovar. Te lo pido para industrializar lo que ya he construido."</div>
-          </div>
+        <div class="col-block" data-a>
+          <div class="col-block-title">Lo que cambia con el Studio</div>
+          <ul>
+            <li>Estos productos pasan a ser el primer catálogo industrializado del Studio</li>
+            <li>Dejan de ser experimentos de Connect y pasan a ser activos transversales que cualquier práctica puede vender</li>
+            <li>Demuestran al cliente que no estamos aprendiendo — estamos escalando</li>
+          </ul>
         </div>
+        <div class="accent-line" data-a>"No estamos aprendiendo a hacer IA. La hemos estado haciendo todo este tiempo."</div>
       </div>
       <div class="slide-footer" data-a>
         <div class="slide-num">07 / 15</div>
@@ -584,9 +617,38 @@
       <div class="content-body">
         <div class="cards-3" data-a>
           <div class="card">
+            <div class="card-info-icon">ⓘ</div>
             <div class="card-eyebrow">Qué incluye</div>
             <div class="card-title">Diagnóstico completo</div>
             <div class="card-body">Madurez de datos sobre 5 ejes<br>Mapa de 2-3 quick-wins accionables en menos de 90 días<br>Roadmap de 12 meses para llegar a AI-ready</div>
+            <div class="card-tooltip">
+              <div class="card-tooltip-header">Los 5 ejes del diagnóstico</div>
+              <div class="card-tooltip-item">
+                <div class="card-tooltip-num">1. Calidad del dato</div>
+                <div class="card-tooltip-sub">¿Los datos son fiables, completos y consistentes?</div>
+                <div class="card-tooltip-body">Cubre: duplicados, campos vacíos, inconsistencias entre sistemas, errores estructurales. Es el eje más obvio y el primero que un cliente reconoce como dolor.</div>
+              </div>
+              <div class="card-tooltip-item">
+                <div class="card-tooltip-num">2. Accesibilidad e integración</div>
+                <div class="card-tooltip-sub">¿El dato está donde se necesita, cuando se necesita?</div>
+                <div class="card-tooltip-body">Cubre: silos entre sistemas, integraciones rotas, latencia, capacidad de combinar fuentes. Es el eje que conecta directamente con activar IA: sin integración, no hay caso de uso.</div>
+              </div>
+              <div class="card-tooltip-item">
+                <div class="card-tooltip-num">3. Gobernanza y trazabilidad</div>
+                <div class="card-tooltip-sub">¿Sabemos quién, cuándo y por qué se modifica el dato?</div>
+                <div class="card-tooltip-body">Cubre: ownership, políticas de acceso, versionado, auditoría. Es el eje que un CMO mid-market suele tener más débil — y lo sabe.</div>
+              </div>
+              <div class="card-tooltip-item">
+                <div class="card-tooltip-num">4. Cumplimiento normativo</div>
+                <div class="card-tooltip-sub">¿El dato cumple con LOPD, GDPR y normativa sectorial aplicable?</div>
+                <div class="card-tooltip-body">Cubre: consentimiento, retención, derecho al olvido, transferencias internacionales. Es el eje que genera miedo inmediato en el cliente y justifica el precio. Toca un nervio.</div>
+              </div>
+              <div class="card-tooltip-item">
+                <div class="card-tooltip-num">5. Preparación para casos de uso de IA</div>
+                <div class="card-tooltip-sub">¿El dato está estructurado para entrenar modelos o alimentar agentes?</div>
+                <div class="card-tooltip-body">Cubre: etiquetado, contexto, formato, embeddings, prompts. Es el eje específicamente diferenciador del Assessment frente a una auditoría de datos clásica.</div>
+              </div>
+            </div>
           </div>
           <div class="card">
             <div class="card-eyebrow">Para quién</div>
@@ -610,25 +672,25 @@
 <div class="slide" id="slide-09">
   <div class="content-top">
     <div class="section-tag" data-a>Los números que sostienen el modelo</div>
-    <div class="slide-title" style="font-size:clamp(28px,3.5vw,42px);" data-a>
-      Por cada Assessment vendido,<br><em>48 K de facturación esperada</em>
+    <div class="slide-title" style="font-size:clamp(26px,3.2vw,40px);" data-a>
+      Año 1 cubre la inversión.<br><em>Año 2 es donde el modelo escala.</em>
     </div>
   </div>
 
-  <div class="content-body" style="gap:14px;justify-content:flex-start;">
+  <div class="content-body" style="gap:12px;justify-content:flex-start;">
     <!-- Row 1: key metrics -->
     <div class="ue-metrics" data-a>
       <div class="ue-metric">
         <div class="ue-metric-value" data-countup="15000" data-suffix="€">0€</div>
-        <div class="ue-metric-label">Precio cerrado</div>
+        <div class="ue-metric-label">Precio Assessment</div>
       </div>
       <div class="ue-metric">
-        <div class="ue-metric-value" data-countup="53" data-suffix="%">0%</div>
-        <div class="ue-metric-label">Margen bruto</div>
+        <div class="ue-metric-value">~100.000 €</div>
+        <div class="ue-metric-label">Ticket medio proyecto derivado</div>
       </div>
       <div class="ue-metric">
-        <div class="ue-metric-value" data-countup="7000" data-suffix="€">0€</div>
-        <div class="ue-metric-label">Coste de entrega</div>
+        <div class="ue-metric-value" data-countup="3" data-suffix="">0</div>
+        <div class="ue-metric-label">Capacidad delivery actual</div>
       </div>
     </div>
 
@@ -643,7 +705,7 @@
       <div class="ue-funnel-arrow">→</div>
       <div class="ue-funnel-step">
         <div class="ue-funnel-step-title">Proyecto derivado</div>
-        <div class="ue-funnel-step-sub">~100.000 € · 40% margen</div>
+        <div class="ue-funnel-step-sub">~100.000 €</div>
       </div>
     </div>
 
@@ -653,36 +715,48 @@
         <thead>
           <tr>
             <th>Año 1 · 15 Assessments</th>
-            <th class="ue-col-conservador">Conservador</th>
-            <th class="ue-col-objetivo">Objetivo</th>
+            <th class="ue-col-conservador">Conservador (20%)</th>
+            <th class="ue-col-objetivo">Objetivo (33%)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Facturación directa</td>
+            <td>Facturación Assessments</td>
             <td class="ue-col-conservador">225 K</td>
             <td class="ue-col-objetivo">225 K</td>
           </tr>
           <tr>
-            <td>Proyectos derivados</td>
+            <td>Facturación proyectos derivados</td>
             <td class="ue-col-conservador">300 K (×3)</td>
             <td class="ue-col-objetivo">500 K (×5)</td>
           </tr>
           <tr class="ue-highlight">
-            <td>Total facturación</td>
+            <td>Facturación total</td>
             <td class="ue-col-conservador">525 K</td>
             <td class="ue-col-objetivo">725 K</td>
           </tr>
           <tr>
-            <td>Margen bruto</td>
-            <td class="ue-col-conservador">240 K (46%)</td>
-            <td class="ue-col-objetivo">320 K (44%)</td>
+            <td>Inversión Studio</td>
+            <td class="ue-col-conservador">300 K</td>
+            <td class="ue-col-objetivo">300 K</td>
+          </tr>
+          <tr class="ue-highlight">
+            <td>Resultado año 1</td>
+            <td class="ue-col-conservador">+225 K</td>
+            <td class="ue-col-objetivo">+425 K</td>
+          </tr>
+          <tr class="ue-highlight">
+            <td>Ratio facturación/inversión</td>
+            <td class="ue-col-conservador">1,75x</td>
+            <td class="ue-col-objetivo">2,4x</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="accent-line" data-a>"Incluso en el escenario conservador, el Studio devuelve 1.75x el presupuesto invertido en margen bruto durante el primer año."</div>
+    <div style="font-size:11px;color:var(--text-dim);line-height:1.5;" data-a>Capacidad delivery con equipo actual: hasta 5-6 proyectos derivados/año. Escalar a 8-10 en año 2 requiere evaluar ampliación con pipeline en la mano.</div>
+
+    <div class="accent-line" data-a>"Año 1 demuestra el modelo. Año 2, con IP construida, es donde el coste marginal de cada proyecto cae y el margen escala."</div>
   </div>
 
   <div class="slide-footer" data-a>
@@ -839,33 +913,33 @@
   <div class="content-top">
     <div class="section-tag" data-a>La inversión</div>
     <div class="slide-title" data-a>
-      300 K — asignados a generar pipeline,<br><em>no a estructura</em>
+      300 K — 76% al equipo,<br><em>el resto a generar pipeline</em>
     </div>
   </div>
   <div class="content-body">
     <div class="cards-4" data-a>
       <div class="card">
-        <div class="card-eyebrow">Célula Core · 40%</div>
-        <div class="card-title" style="font-size:22px;color:var(--accent);">120 K</div>
-        <div class="card-body">Equipo de 3 personas dedicadas al Studio.</div>
+        <div class="card-eyebrow">Salarios Equipo Core · 77%</div>
+        <div class="card-title" style="font-size:22px;color:var(--accent);">230 K</div>
+        <div class="card-body">Tres perfiles full-time durante 12 meses: Director, Business Analyst, Ejecutor técnico IA.</div>
       </div>
       <div class="card">
-        <div class="card-eyebrow">Fondo Pilotos / Ventas · 30%</div>
-        <div class="card-title" style="font-size:22px;color:var(--accent);">90 K</div>
-        <div class="card-body">Co-inversión en primeros pilotos con cuentas estratégicas.</div>
+        <div class="card-eyebrow">Tech &amp; Enablement · 13%</div>
+        <div class="card-title" style="font-size:22px;color:var(--accent);">40 K</div>
+        <div class="card-body">Formación específica en IA, herramientas, licencias y certificaciones del equipo dedicado.</div>
       </div>
       <div class="card">
-        <div class="card-eyebrow">Tech &amp; Enablement · 20%</div>
-        <div class="card-title" style="font-size:22px;color:var(--accent);">60 K</div>
-        <div class="card-body">Formación, herramientas y capacitación en pocas tecnologías core.</div>
+        <div class="card-eyebrow">Fondo Pilotos · 7%</div>
+        <div class="card-title" style="font-size:22px;color:var(--accent);">20 K</div>
+        <div class="card-body">Descuentos comerciales puntuales en los primeros clientes estratégicos para asegurar caso de éxito inicial.</div>
       </div>
       <div class="card">
-        <div class="card-eyebrow">Habilitación Comercial · 10%</div>
-        <div class="card-title" style="font-size:22px;color:var(--accent);">30 K</div>
-        <div class="card-body">Soporte a la narrativa GTM con Nata.</div>
+        <div class="card-eyebrow">Habilitación Comercial · 3%</div>
+        <div class="card-title" style="font-size:22px;color:var(--accent);">10 K</div>
+        <div class="card-body">Eventos sectoriales y materiales externos puntuales. La narrativa GTM se construye con el equipo de Marketing interno.</div>
       </div>
     </div>
-    <div class="accent-line" data-a>"El 70% del presupuesto va directo a generar pipeline. No a construir estructura permanente."</div>
+    <div class="accent-line" data-a>"El activo del Studio es el equipo. Todo lo demás es soporte para que ese equipo venda y entregue mejor."</div>
   </div>
   <div class="slide-footer" data-a>
     <div class="slide-num">13 / 15</div>
@@ -877,29 +951,29 @@
 <div class="slide" id="slide-14">
   <div class="content-top">
     <div class="section-tag" data-a>El cierre</div>
-    <div class="slide-title" data-a>Tres decisiones. <em>Hoy.</em></div>
+    <div class="slide-title" data-a>Próximos pasos — <em>qué activamos esta semana</em></div>
   </div>
   <div class="content-body" style="gap:16px;">
     <div class="setup-steps" data-a>
       <div class="setup-step">
         <div class="step-num">1</div>
         <div>
-          <div class="step-content-title">Mandato para construir el primer producto</div>
-          <div class="step-content-body">Arrancar el Studio formalmente y tener el primer producto operativo en seis semanas.</div>
+          <div class="step-content-title">Arranque del primer producto</div>
+          <div class="step-content-body">Empezamos a construir el Data Readiness for AI esta semana. Operativo en seis semanas.</div>
         </div>
       </div>
       <div class="setup-step">
         <div class="step-num">2</div>
         <div>
-          <div class="step-content-title">Permiso para abrir conversación comercial</div>
-          <div class="step-content-body">Con tres Account Managers seleccionados — Mahou, Heineken, Aleph como hipótesis.</div>
+          <div class="step-content-title">Activación comercial</div>
+          <div class="step-content-body">Identificamos juntos las tres primeras cuentas a abordar. Mahou, Heineken y Aleph como hipótesis a validar contigo y con los Account Managers.</div>
         </div>
       </div>
       <div class="setup-step">
         <div class="step-num">3</div>
         <div>
-          <div class="step-content-title">Acuerdo de gobierno por hitos</div>
-          <div class="step-content-body">Revisión en mes 3, 6 y 12 con métricas distintas en cada uno.</div>
+          <div class="step-content-title">Gobierno por hitos</div>
+          <div class="step-content-body">Revisión en mes 3, 6 y 12. Métricas distintas en cada uno. Decisión informada con datos, no con intuición.</div>
         </div>
       </div>
     </div>
@@ -930,7 +1004,7 @@
     </svg>
   </div>
 
-  <div class="slide-footer" style="position:relative;z-index:1;" data-a>
+  <div class="slide-footer" style="position:absolute;bottom:var(--slide-pad-y);left:var(--slide-pad-x);right:var(--slide-pad-x);z-index:2;" data-a>
     <div class="slide-num">15 / 15</div>
     <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
   </div>
