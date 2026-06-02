@@ -1,0 +1,1558 @@
+# WAM AI Studio Presentation Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a single self-contained `index.html` web presentation (16 slides) for the WAM AI Studio CEO pitch, using the same visual system as `sample-presentation.html` with enriched animations on 4 key slides.
+
+**Architecture:** Single HTML file with all CSS and JS inline. Slides are `position:absolute` elements managed by a GSAP-powered engine. Content from `content.md` is hand-authored into HTML; the "Por qué esta slide así" notes are editorial and excluded. Four slides (01, 03, 09, 12) get custom layouts; the other twelve use the shared component system.
+
+**Tech Stack:** HTML5, CSS custom properties, GSAP 3.12.5 (CDN), vanilla JS. No build step, no bundler, no extra libraries.
+
+---
+
+## File Structure
+
+```
+index.html          ← single output file (all HTML + CSS + JS inline)
+fonts/              ← TiemposFine-Regular.woff2, TiemposFine-Italic.woff2,
+                       Inter-Regular.woff2, Inter-Medium.woff2
+                       (copy from Connect project; fallback: Georgia + system-ui)
+```
+
+---
+
+## Task 1: HTML scaffold, CSS variables, font setup, and slide-engine CSS
+
+**Files:**
+- Create: `index.html`
+
+- [ ] **Step 1: Create the file with the full HTML shell and CSS foundation**
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAM AI Studio — Propuesta</title>
+  <style>
+    /* ==================== FONTS ==================== */
+    @font-face {
+      font-family: 'TiemposFine';
+      src: url('fonts/TiemposFine-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'TiemposFine';
+      src: url('fonts/TiemposFine-Italic.woff2') format('woff2');
+      font-weight: 400; font-style: italic; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: url('fonts/Inter-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: url('fonts/Inter-Medium.woff2') format('woff2');
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+
+    /* ==================== VARIABLES ==================== */
+    :root {
+      --bg:             #080808;
+      --text:           #ffffff;
+      --text-muted:     #555555;
+      --text-dim:       #333333;
+      --accent:         #FF7EFF;
+      --accent-glow:    rgba(255, 126, 255, 0.15);
+      --accent-glow-lg: rgba(255, 126, 255, 0.08);
+      --surface:        rgba(255, 255, 255, 0.03);
+      --surface-border: rgba(255, 255, 255, 0.07);
+      --font-title:     'TiemposFine', Georgia, serif;
+      --font-body:      'Inter', system-ui, -apple-system, sans-serif;
+      --slide-pad-x:    72px;
+      --slide-pad-y:    52px;
+      --transition-dur: 0.5s;
+    }
+
+    /* ==================== RESET & BASE ==================== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ==================== SLIDE ENGINE ==================== */
+    #presentation {
+      position: relative;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+    }
+    .slide {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 28px;
+      padding: var(--slide-pad-y) var(--slide-pad-x);
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+    .slide.is-active { pointer-events: auto; }
+
+    /* ==================== PROGRESS ==================== */
+    #progress {
+      position: fixed;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 7px; align-items: center;
+      z-index: 200;
+    }
+    .dot {
+      border-radius: 50%;
+      background: #222;
+      transition: width .3s, height .3s, background .3s, box-shadow .3s;
+      cursor: pointer;
+      width: 6px; height: 6px;
+    }
+    .dot.is-active {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(255,126,255,.6);
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+      :root { --slide-pad-x: 28px; --slide-pad-y: 32px; }
+      .slide-title { font-size: clamp(28px, 8vw, 44px) !important; }
+      .cards-3, .cards-2 { grid-template-columns: 1fr !important; gap: 12px; }
+      .two-col { grid-template-columns: 1fr !important; gap: 12px; }
+      #progress { bottom: 16px; }
+    }
+    @media (max-width: 480px) {
+      :root { --slide-pad-x: 20px; --slide-pad-y: 24px; }
+      .nav-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="presentation">
+    <!-- slides go here -->
+  </div>
+  <div id="progress"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script>
+    // JS goes here
+  </script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Open `index.html` in browser**
+
+Expected: Black page, no errors in console.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: scaffold index.html with CSS variables and slide engine shell"
+```
+
+---
+
+## Task 2: Slide engine JavaScript (navigation + transitions + progress dots)
+
+**Files:**
+- Modify: `index.html` — replace `// JS goes here` with the full engine
+
+- [ ] **Step 1: Add the slide engine inside the `<script>` tag**
+
+```javascript
+const TOTAL_SLIDES = 16;
+let currentIndex = 0;
+let isAnimating  = false;
+
+function getSlides() { return document.querySelectorAll('.slide'); }
+function getDots()   { return document.querySelectorAll('.dot'); }
+
+function updateProgress() {
+  getDots().forEach((d, i) => d.classList.toggle('is-active', i === currentIndex));
+}
+
+function goToSlide(targetIndex, direction) {
+  if (isAnimating) return;
+  if (targetIndex < 0 || targetIndex >= TOTAL_SLIDES) return;
+  if (targetIndex === currentIndex) return;
+
+  isAnimating = true;
+  const slides    = getSlides();
+  const fromSlide = slides[currentIndex];
+  const toSlide   = slides[targetIndex];
+  if (!fromSlide || !toSlide) { isAnimating = false; return; }
+
+  const dir = direction !== undefined ? direction : (targetIndex > currentIndex ? 1 : -1);
+  const toEls = toSlide.querySelectorAll('[data-a]');
+  if (toEls.length) gsap.set(toEls, { opacity: 0 });
+
+  gsap.set(toSlide, { xPercent: dir * 100, opacity: 1 });
+  toSlide.classList.add('is-active');
+
+  const tl = gsap.timeline({
+    onComplete: () => {
+      fromSlide.classList.remove('is-active');
+      gsap.set(fromSlide, { xPercent: -dir * 100, opacity: 0 });
+      currentIndex = targetIndex;
+      isAnimating  = false;
+      updateProgress();
+      onSlideEnter(targetIndex, toSlide);
+    },
+    onInterrupt: () => { isAnimating = false; }
+  });
+  tl.to(fromSlide, { xPercent: -dir * 100, duration: 0.5, ease: 'power2.inOut' }, 0);
+  tl.to(toSlide,   { xPercent: 0,           duration: 0.5, ease: 'power2.inOut' }, 0);
+  if (toEls.length) {
+    tl.to(toEls, { opacity: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out', clearProps: 'opacity' }, 0.15);
+  }
+}
+
+function goNext() { goToSlide(currentIndex + 1,  1); }
+function goPrev() { goToSlide(currentIndex - 1, -1); }
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); goNext(); }
+  if (['ArrowLeft','ArrowUp'].includes(e.key))        { e.preventDefault(); goPrev(); }
+});
+
+// Click
+document.getElementById('presentation').addEventListener('click', e => {
+  if (e.target.closest('.dot')) return;
+  e.clientX > window.innerWidth / 2 ? goNext() : goPrev();
+});
+
+// Touch
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].clientX;
+  touchStartY = e.changedTouches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) dx < 0 ? goNext() : goPrev();
+}, { passive: true });
+
+// Progress dots
+function buildProgress() {
+  const container = document.getElementById('progress');
+  container.innerHTML = '';
+  for (let i = 0; i < TOTAL_SLIDES; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' is-active' : '');
+    dot.addEventListener('click', () => goToSlide(i));
+    container.appendChild(dot);
+  }
+}
+
+// Per-slide enter hook (filled in Task 12)
+function onSlideEnter(index, slideEl) {}
+
+// Init
+function init() {
+  buildProgress();
+  const slides = getSlides();
+  slides.forEach((s, i) => {
+    if (i === 0) { s.classList.add('is-active'); gsap.set(s, { opacity: 1, xPercent: 0 }); }
+    else          { gsap.set(s, { opacity: 0, xPercent: 100 }); }
+  });
+  updateProgress();
+  document.fonts.ready.then(() => {
+    const els = slides[0].querySelectorAll('[data-a]');
+    if (els.length) gsap.fromTo(els, { opacity: 0 }, { opacity: 1, duration: 0.45, stagger: 0.12, ease: 'power2.out', clearProps: 'opacity' });
+  });
+}
+
+init();
+```
+
+- [ ] **Step 2: Add one temporary test slide inside `#presentation` to verify the engine works**
+
+Add inside `<div id="presentation">`:
+```html
+<div class="slide" id="slide-test-a">
+  <p style="color:white;padding:40px;">Slide 1</p>
+</div>
+<div class="slide" id="slide-test-b">
+  <p style="color:white;padding:40px;">Slide 2</p>
+</div>
+```
+
+Also change `TOTAL_SLIDES = 2` temporarily.
+
+- [ ] **Step 3: Open in browser. Verify**
+
+- Slide 1 is visible on load.
+- Arrow keys and clicking left/right half navigate between the two slides.
+- Slides slide horizontally in/out.
+- Progress dots update.
+
+- [ ] **Step 4: Remove the two test slides and restore `TOTAL_SLIDES = 16`**
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add slide engine with keyboard, click, touch navigation and progress dots"
+```
+
+---
+
+## Task 3: Shared component CSS
+
+**Files:**
+- Modify: `index.html` — add component CSS inside `<style>`, after the responsive block
+
+- [ ] **Step 1: Add all shared components**
+
+```css
+/* ==================== WAM LOGO ==================== */
+.wam-logo { display: flex; align-items: center; gap: 10px; }
+.wam-bar  { width: 4px; height: 24px; background: var(--accent); border-radius: 2px; }
+.wam-wordmark { font-family: var(--font-body); font-weight: 500; font-size: 12px; letter-spacing: 4px; color: var(--text); }
+
+/* ==================== SECTION TAG (kicker) ==================== */
+.section-tag {
+  font-size: 10px; font-weight: 500; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent);
+  display: flex; align-items: center; gap: 12px;
+}
+.section-tag::before {
+  content: ''; display: block;
+  width: 24px; height: 2px;
+  background: var(--accent); border-radius: 1px; flex-shrink: 0;
+}
+
+/* ==================== SLIDE TITLE ==================== */
+.slide-title {
+  font-family: var(--font-title);
+  font-size: 54px; font-weight: 400;
+  line-height: 1.1; letter-spacing: -0.5px;
+  color: var(--text);
+}
+.slide-title em { font-style: italic; color: var(--accent); }
+
+/* ==================== SLIDE FOOTER ==================== */
+.slide-footer {
+  display: flex; align-items: center;
+  justify-content: space-between; padding-bottom: 8px;
+}
+.slide-num { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
+.nav-hint  { display: flex; align-items: center; gap: 6px; }
+.nav-key   {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 4px; padding: 2px 8px;
+  font-size: 10px; color: var(--text-dim);
+}
+
+/* ==================== CONTENT WRAPPERS ==================== */
+.content-top  { display: flex; flex-direction: column; gap: 20px; }
+.content-body {
+  flex: 1; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column;
+  justify-content: center; gap: 24px;
+}
+
+/* ==================== CARDS ==================== */
+.cards-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+.cards-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.cards-4 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+.card {
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; padding: 24px;
+  transition: transform .2s ease, border-color .2s ease;
+}
+.card:hover { transform: translateY(-3px); border-color: rgba(255,126,255,.3); }
+.card-eyebrow {
+  font-size: 10px; font-weight: 500; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+}
+.card-title  { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
+.card-body   { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+
+/* ==================== TWO-COL ==================== */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.col-block {
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; padding: 24px;
+}
+.col-block-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 14px; letter-spacing: .3px; }
+.col-block ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.col-block ul li {
+  font-size: 14px; color: var(--text-muted); line-height: 1.5;
+  padding-left: 14px; position: relative;
+}
+.col-block ul li::before { content: '–'; position: absolute; left: 0; color: var(--accent); }
+
+/* ==================== ACCENT LINE (quote) ==================== */
+.accent-line {
+  font-family: var(--font-title); font-style: italic;
+  font-size: 18px; color: var(--accent);
+  border-left: 2px solid var(--accent);
+  padding-left: 16px; line-height: 1.4; margin-top: 16px;
+}
+
+/* ==================== SETUP STEPS (numbered) ==================== */
+.setup-steps { display: flex; flex-direction: column; gap: 16px; }
+.setup-step  {
+  display: flex; align-items: flex-start; gap: 20px;
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; padding: 20px 24px;
+  transition: border-color .2s;
+}
+.setup-step:hover { border-color: rgba(255,126,255,.3); }
+.step-num { font-family: var(--font-title); font-style: italic; font-size: 32px; color: var(--accent); line-height: 1; flex-shrink: 0; width: 32px; }
+.step-content-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.step-content-body  { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add shared component CSS (cards, two-col, accent-line, setup-steps)"
+```
+
+---
+
+## Task 4: Slide 01 — Portada (special)
+
+**Files:**
+- Modify: `index.html` — add slide HTML inside `#presentation`, add cover-specific CSS inside `<style>`
+
+- [ ] **Step 1: Add cover CSS**
+
+```css
+/* ==================== SLIDE 01 — COVER ==================== */
+#slide-01 { position: relative; overflow: hidden; }
+#cover-glow {
+  position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+  width: 700px; height: 500px;
+  background: radial-gradient(ellipse, rgba(255,126,255,.12) 0%, transparent 60%);
+  border-radius: 50%; pointer-events: none; will-change: transform, opacity;
+}
+#cover-title {
+  font-family: var(--font-title);
+  font-size: clamp(52px, 8vw, 96px);
+  font-weight: 400; line-height: 1.05; letter-spacing: -1px;
+  color: var(--text); will-change: transform;
+}
+#cover-title em { font-style: italic; color: var(--accent); }
+.cover-eyebrow {
+  font-size: 10px; font-weight: 500; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+}
+.cover-meta { font-size: 11px; color: var(--text-dim); letter-spacing: .5px; }
+```
+
+- [ ] **Step 2: Add slide 01 HTML inside `#presentation`**
+
+```html
+<!-- == SLIDE 01: PORTADA == -->
+<div class="slide" id="slide-01">
+  <div id="cover-glow"></div>
+
+  <div class="wam-logo" data-a>
+    <div class="wam-bar"></div>
+    <div class="wam-wordmark">
+      <svg style="height:20px;width:auto;display:block;" viewBox="0 0 616.94 183.34" xmlns="http://www.w3.org/2000/svg">
+        <path d="M248.48,183.34L292.23,0h64.96l43.75,183.34h-36.15l-8.91-39.28h-62.34l-8.9,39.28h-36.16ZM300.87,111.05h47.42l-21.22-93.76h-4.72l-21.48,93.76ZM.16,10.47c-.89,37.86-2.99,126.53,30.25,160.47,9.32,9.51,20.6,14.32,33.54,14.32h.16c16.7-.05,32.53-10.52,45.8-29.94,15.22,19.48,32.97,29.94,51.4,29.94,13.72,0,25.65-5.07,35.44-15.06,29.65-30.28,32.33-97.64,31.02-159.54-.09-4.34-.16-7.96-.16-10.66h-23.21c0,2.83.08,6.63.18,11.15.67,31.57,2.43,115.42-24.41,142.82-5.41,5.52-11.4,8.1-18.85,8.1-13.03,0-26.88-10.52-38.96-29.27,11.25-25.06,18.16-55.99,18.12-81.54-.02-14.71-2.29-26.76-6.74-35.81-5.96-12.12-15.92-18.78-28.07-18.78-11.47,0-20.91,5.97-26.61,16.8-4.29,8.16-6.46,19.04-6.46,32.31,0,27.03,8.93,60.63,23.29,87.68.04.06.08.14.11.2-9.92,17.9-21.55,28.35-31.96,28.39h-.09c-6.65,0-12.03-2.34-16.95-7.36C20.61,127.75,22.61,42.95,23.36,11.02c.11-4.61.2-8.27.2-11.03H.35c0,2.48-.09,6.02-.19,10.49ZM95.82,45.78c0-4.33.48-25.9,9.86-25.9,8.51,0,11.57,16.92,11.58,31.41.03,16.53-3.28,35.68-9,53.5-7.75-19.73-12.44-41.4-12.44-58.99h0ZM616.94.77l-.76,4.07c-1.53,5.77-2.68,11.15-3.44,16.15-.76,5-1.15,10.29-1.15,15.89v109.34c0,5.6.38,10.89,1.15,15.89.76,5,1.91,10.39,3.44,16.15l.76,4.07v1.01h-38.4v-1.01l.76-4.07c1.36-5.76,2.46-11.15,3.3-16.15.84-5,1.27-10.3,1.27-15.89V28.57l-59.24,154.77h-13.98l-60.03-154.38c-.18,2.56-.27,5.2-.27,7.92v95.1c0,7.63.81,15.13,2.42,22.5,1.61,7.37,3.69,14.79,6.23,22.24.34,1.01.67,1.96,1.02,2.8.34.86.59,1.7.76,2.54v1.27h-31.27v-1.27c.17-.84.42-1.7.76-2.54.34-.84.67-1.78,1.02-2.8,2.37-7.46,4.41-14.87,6.1-22.24,1.7-7.38,2.54-14.88,2.54-22.5V36.88c0-9.67-2.2-20.34-6.61-32.04l-1.53-3.81V.27h7.67,0s28.73-.01,28.73-.01l58.35,149.37L583.87.03v-.03h33.07v.77Z" fill="#FFFFFF"/>
+      </svg>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div class="cover-eyebrow" data-a>Dirección de Innovación · Propuesta</div>
+    <div id="cover-title" data-a>
+      Un nuevo motor de<br><em>ingresos</em> para WAM
+    </div>
+    <div style="margin-top:20px;font-size:16px;color:var(--text-muted);font-family:var(--font-body);" data-a>
+      Estudio de AI Automation — visión 12 meses, plan a 6
+    </div>
+  </div>
+
+  <div class="slide-footer" data-a>
+    <div class="cover-meta">Enric · [fecha] · Confidencial</div>
+    <div class="nav-hint">
+      <span class="nav-key">←</span><span class="nav-key">→</span>
+      <span style="font-size:10px;color:var(--text-dim);margin-left:4px;">navegar</span>
+    </div>
+  </div>
+</div>
+```
+
+- [ ] **Step 3: Open in browser. Verify**
+
+- Portada visible, WAM logo en la parte superior.
+- Título grande con "ingresos" en magenta.
+- Glow sutil detrás del título.
+- Subtítulo y meta pie visibles.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add slide 01 portada with cover layout and glow"
+```
+
+---
+
+## Task 5: Slides 02–08 (standard layouts)
+
+**Files:**
+- Modify: `index.html` — append slides after `#slide-01` inside `#presentation`
+
+- [ ] **Step 1: Add slides 02–08 HTML**
+
+Append all seven slides after `<!-- == SLIDE 01 == -->`:
+
+```html
+<!-- == SLIDE 02: LA APERTURA == -->
+<div class="slide" id="slide-02">
+  <div class="content-top">
+    <div class="section-tag" data-a>Antes de empezar</div>
+    <div class="slide-title" data-a>
+      No es un plan de innovación.<br>
+      Es una propuesta para <em>proteger el margen</em><br>en los próximos 18 meses.
+    </div>
+  </div>
+  <div class="content-body" style="justify-content:center;gap:18px;">
+    <div data-a style="display:flex;flex-direction:column;gap:14px;">
+      <div style="font-size:16px;color:var(--text);line-height:1.5;">Lo que ya he construido en solitario — Enric, Anna, Sira — convertido en una unidad que vende producto cerrado al mid-market.</div>
+      <div style="font-size:16px;color:var(--text);line-height:1.5;">Antes de que lo haga otro.</div>
+      <div style="font-size:16px;color:var(--text);line-height:1.5;">Hoy te pido mandato, no presupuesto definitivo.</div>
+    </div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">02 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+
+<!-- == SLIDE 03: LA AMENAZA (special two-col) == -->
+<div class="slide" id="slide-03">
+  <div class="content-top">
+    <div class="section-tag" data-a>El contexto que ya conoces</div>
+    <div class="slide-title" data-a>
+      El modelo de horas se comprime —<br>y nadie en WAM <em>lo ha enfrentado todavía</em>
+    </div>
+  </div>
+  <div class="content-body">
+    <div class="two-col" data-a>
+      <div class="col-block">
+        <div class="col-block-title">Lo que está pasando</div>
+        <ul>
+          <li>Claude Code y similares están reduciendo el tiempo de desarrollo en un <span style="color:var(--accent);font-weight:500;">40-60%</span></li>
+          <li>Esa eficiencia se la queda el cliente, no el partner</li>
+          <li>Cada hora ganada en productividad es una hora menos facturable</li>
+        </ul>
+      </div>
+      <div class="col-block">
+        <div class="col-block-title">Lo que esto significa para WAM</div>
+        <ul>
+          <li>Connect, Scale, Grow e Impact dependen de horas facturadas</li>
+          <li>La compresión es estructural, no coyuntural</li>
+          <li>En 18 meses, esto va a impactar el P&L de todas las prácticas</li>
+        </ul>
+      </div>
+    </div>
+    <div class="accent-line" data-a>"No es una predicción. Es lo que ya está pasando en nuestros proyectos."</div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">03 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+
+<!-- == SLIDE 04: LA OPORTUNIDAD == -->
+<div class="slide" id="slide-04">
+  <div class="content-top">
+    <div class="section-tag" data-a>El hueco del mercado</div>
+    <div class="slide-title" data-a>
+      El mid-market sabe que necesita IA<br>
+      y nadie se la está <em>vendiendo en serio</em>
+    </div>
+  </div>
+  <div class="content-body">
+    <div class="cards-3" data-a>
+      <div class="card">
+        <div class="card-eyebrow">Las Big Four</div>
+        <div class="card-title">Fuera del alcance</div>
+        <div class="card-body">No se sientan con cuentas de mid-market. Sus tickets mínimos están fuera del presupuesto del segmento.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Las boutiques técnicas</div>
+        <div class="card-title">Tecnología sin negocio</div>
+        <div class="card-body">Venden tecnología sin entender el negocio. El cliente queda con un POC que no escala.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Los partners tradicionales</div>
+        <div class="card-title">Siguen vendiendo horas</div>
+        <div class="card-body">La mayoría no ha empezado a empaquetar. La ventana para ocupar el hueco es de 12 meses.</div>
+      </div>
+    </div>
+    <div class="accent-line" data-a>"Hay un hueco. Y la ventana para ocuparlo es de 12 meses."</div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">04 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+
+<!-- == SLIDE 05: LA RESPUESTA == -->
+<div class="slide" id="slide-05">
+  <div class="content-top">
+    <div class="section-tag" data-a>Nuestra posición</div>
+    <div class="slide-title" data-a>
+      WAM es el partner de IA<br>que el mid-market <em>sí se puede permitir</em>
+    </div>
+  </div>
+  <div class="content-body">
+    <div style="font-size:15px;color:var(--text-muted);line-height:1.6;" data-a>
+      Vendemos producto cerrado, con ROI medible, en ciclos de semanas. No transformación de 18 meses.
+    </div>
+    <div class="cards-3" data-a>
+      <div class="card">
+        <div class="card-eyebrow">1. Track record</div>
+        <div class="card-title">Mid-market demostrado</div>
+        <div class="card-body">Druni, Artiem, The Power, Europe Emirates. Sabemos entregar valor en este segmento.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">2. Producto en producción</div>
+        <div class="card-title">No empezamos de cero</div>
+        <div class="card-body">Enric, Anna, Sira, AgentPlus. No empezamos de cero — industrializamos.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">3. Ecosistema 360</div>
+        <div class="card-title">Lo que ninguna boutique tiene</div>
+        <div class="card-body">Connect, Scale, Grow e Impact. Ninguna boutique de IA puede activar el CRM, el commerce o la creatividad. Nosotros sí.</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">05 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+
+<!-- == SLIDE 06: EL STUDIO == -->
+<div class="slide" id="slide-06">
+  <div class="content-top">
+    <div class="section-tag" data-a>Cómo lo organizamos</div>
+    <div class="slide-title" data-a>
+      AI Studio<br><em>Una unidad que vende producto, no horas</em>
+    </div>
+  </div>
+  <div class="content-body">
+    <div class="cards-3" data-a>
+      <div class="card">
+        <div class="card-eyebrow">Diagnóstico</div>
+        <div class="card-title">Producto cerrado de 2 semanas</div>
+        <div class="card-body">Entrada a cuentas nuevas. ROI medible desde el primer entregable.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Aceleradores</div>
+        <div class="card-title">Plug & play con precio cerrado</div>
+        <div class="card-body">IP reutilizable. Margen escalable proyecto a proyecto.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Soluciones ad-hoc</div>
+        <div class="card-title">Transformación profunda con agentes</div>
+        <div class="card-body">Entrega acelerada por IA interna. Ticket alto, margen protegido.</div>
+      </div>
+    </div>
+    <div class="accent-line" data-a>"No es un lab. Es una unidad comercial con producto tangible."</div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">06 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+
+<!-- == SLIDE 07: LO QUE YA EXISTE == -->
+<div class="slide" id="slide-07">
+  <div class="content-top">
+    <div class="section-tag" data-a>El Studio no parte de cero</div>
+    <div class="slide-title" data-a>
+      Enric, Anna, Sira, AgentPlus.<br><em>Ya están en producción.</em>
+    </div>
+  </div>
+  <div class="content-body">
+    <div style="font-size:15px;color:var(--text-muted);line-height:1.65;max-width:680px;" data-a>
+      Lo que hoy llamamos "WAM Innovation" es un conjunto de productos desarrollados desde Connect. Han demostrado valor pero viven dispersos, sin dirección comercial unificada.
+    </div>
+    <div class="two-col" data-a>
+      <div class="col-block">
+        <div class="col-block-title">Lo que cambia con el Studio</div>
+        <ul>
+          <li>Estos productos pasan a ser el primer catálogo industrializado del Studio</li>
+          <li>Dejan de ser experimentos de Connect y pasan a ser activos transversales que cualquier práctica puede vender</li>
+          <li>Demuestran al cliente que no estamos aprendiendo — estamos escalando</li>
+        </ul>
+      </div>
+      <div class="col-block" style="display:flex;align-items:center;">
+        <div class="accent-line" style="margin-top:0;">"No te estoy pidiendo presupuesto para empezar a innovar. Te lo pido para industrializar lo que ya he construido."</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">07 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+
+<!-- == SLIDE 08: EL PRIMER PRODUCTO == -->
+<div class="slide" id="slide-08">
+  <div class="content-top">
+    <div class="section-tag" data-a>El primer producto, en concreto</div>
+    <div class="slide-title" data-a>
+      WAM Data Readiness for AI<br>
+      <em style="font-size:0.7em;">15.000 € · 2 semanas · puerta a proyectos derivados</em>
+    </div>
+  </div>
+  <div class="content-body">
+    <div class="cards-3" data-a>
+      <div class="card">
+        <div class="card-eyebrow">Qué incluye</div>
+        <div class="card-title">Diagnóstico completo</div>
+        <div class="card-body">
+          Madurez de datos sobre 5 ejes<br>
+          Mapa de 2-3 quick-wins accionables en menos de 90 días<br>
+          Roadmap de 12 meses para llegar a AI-ready
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Para quién</div>
+        <div class="card-title">Mid-market con datos infraexplotados</div>
+        <div class="card-body">Cuentas de la cartera actual (Mahou, Heineken, Aleph como hipótesis) y nuevas cuentas mid-market que ningún partner está atendiendo.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Por qué este primero</div>
+        <div class="card-title">El dolor real del mercado</div>
+        <div class="card-body">Resuelve el dolor real que todo el mid-market tiene. Nadie lo vende empaquetado en este segmento. Es la puerta a proyectos derivados de mayor ticket.</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">08 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+```
+
+- [ ] **Step 2: Open in browser. Navigate through slides 01–08. Verify**
+
+- All slides navigate correctly with arrows.
+- Slide 03 shows the 40-60% figure in magenta inline.
+- Cards have hover effect.
+- Progress dots advance correctly.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add slides 02-08 (apertura, amenaza, oportunidad, respuesta, studio, existe, primer producto)"
+```
+
+---
+
+## Task 6: Slide 09 — Unit economics (special animated)
+
+**Files:**
+- Modify: `index.html` — add CSS for slide-09 components, add slide HTML
+
+- [ ] **Step 1: Add unit economics CSS inside `<style>`**
+
+```css
+/* ==================== SLIDE 09 — UNIT ECONOMICS ==================== */
+.ue-metrics {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 14px;
+}
+.ue-metric {
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; padding: 20px 22px; text-align: center;
+}
+.ue-metric-value {
+  font-family: var(--font-title); font-size: 36px; font-weight: 400;
+  color: var(--accent); line-height: 1; margin-bottom: 6px;
+}
+.ue-metric-label {
+  font-size: 11px; color: var(--text-muted); letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.ue-funnel {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; padding: 16px 22px;
+}
+.ue-funnel-step {
+  flex: 1; text-align: center;
+}
+.ue-funnel-step-title { font-size: 15px; font-weight: 500; color: var(--text); }
+.ue-funnel-step-sub   { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.ue-funnel-arrow { font-size: 20px; color: var(--accent); flex-shrink: 0; }
+.ue-funnel-rate   { font-size: 12px; color: var(--text-dim); flex-shrink: 0; text-align: center; line-height: 1.4; }
+.ue-table { width: 100%; border-collapse: collapse; }
+.ue-table th {
+  font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-dim); padding: 8px 16px; text-align: right; border-bottom: 1px solid var(--surface-border);
+}
+.ue-table th:first-child { text-align: left; }
+.ue-table td {
+  font-size: 14px; color: var(--text-muted); padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.04); text-align: right;
+}
+.ue-table td:first-child { text-align: left; color: var(--text); }
+.ue-table tr.ue-highlight td { color: var(--accent); font-weight: 500; }
+.ue-table-wrap {
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; overflow: hidden;
+}
+.ue-col-conservador, .ue-col-objetivo { opacity: 0; }
+```
+
+- [ ] **Step 2: Add slide 09 HTML inside `#presentation`**
+
+```html
+<!-- == SLIDE 09: UNIT ECONOMICS (special) == -->
+<div class="slide" id="slide-09">
+  <div class="content-top">
+    <div class="section-tag" data-a>Los números que sostienen el modelo</div>
+    <div class="slide-title" style="font-size:clamp(28px,3.5vw,42px);" data-a>
+      Por cada Assessment vendido,<br><em>48 K de facturación esperada</em>
+    </div>
+  </div>
+
+  <div class="content-body" style="gap:14px;justify-content:flex-start;">
+    <!-- Row 1: key metrics -->
+    <div class="ue-metrics" data-a>
+      <div class="ue-metric">
+        <div class="ue-metric-value" data-countup="15000" data-suffix="€">0€</div>
+        <div class="ue-metric-label">Precio cerrado</div>
+      </div>
+      <div class="ue-metric">
+        <div class="ue-metric-value" data-countup="53" data-suffix="%">0%</div>
+        <div class="ue-metric-label">Margen bruto</div>
+      </div>
+      <div class="ue-metric">
+        <div class="ue-metric-value" data-countup="7000" data-suffix="€">0€</div>
+        <div class="ue-metric-label">Coste de entrega</div>
+      </div>
+    </div>
+
+    <!-- Row 2: funnel -->
+    <div class="ue-funnel" data-a>
+      <div class="ue-funnel-step">
+        <div class="ue-funnel-step-title">Assessment</div>
+        <div class="ue-funnel-step-sub">15.000 €</div>
+      </div>
+      <div class="ue-funnel-arrow">→</div>
+      <div class="ue-funnel-rate">Conversión<br><span style="color:var(--accent)">20–33%</span></div>
+      <div class="ue-funnel-arrow">→</div>
+      <div class="ue-funnel-step">
+        <div class="ue-funnel-step-title">Proyecto derivado</div>
+        <div class="ue-funnel-step-sub">~100.000 € · 40% margen</div>
+      </div>
+    </div>
+
+    <!-- Row 3: scenario table -->
+    <div class="ue-table-wrap" data-a>
+      <table class="ue-table">
+        <thead>
+          <tr>
+            <th>Año 1 · 15 Assessments</th>
+            <th class="ue-col-conservador">Conservador</th>
+            <th class="ue-col-objetivo">Objetivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Facturación directa</td>
+            <td class="ue-col-conservador">225 K</td>
+            <td class="ue-col-objetivo">225 K</td>
+          </tr>
+          <tr>
+            <td>Proyectos derivados</td>
+            <td class="ue-col-conservador">300 K (×3)</td>
+            <td class="ue-col-objetivo">500 K (×5)</td>
+          </tr>
+          <tr class="ue-highlight">
+            <td>Total facturación</td>
+            <td class="ue-col-conservador">525 K</td>
+            <td class="ue-col-objetivo">725 K</td>
+          </tr>
+          <tr>
+            <td>Margen bruto</td>
+            <td class="ue-col-conservador">240 K (46%)</td>
+            <td class="ue-col-objetivo">320 K (44%)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="accent-line" data-a>"Incluso en el escenario conservador, el Studio devuelve 1.75x el presupuesto invertido en margen bruto durante el primer año."</div>
+  </div>
+
+  <div class="slide-footer" data-a>
+    <div class="slide-num">09 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+```
+
+- [ ] **Step 3: Open in browser. Navigate to slide 09. Verify**
+
+- Layout shows 3 rows: metrics, funnel, table.
+- Table columns `.ue-col-conservador` and `.ue-col-objetivo` are invisible (opacity 0) — they will animate in Task 12.
+- Metric values show "0€" / "0%" — they will count up in Task 12.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add slide 09 unit economics with metric placeholders and scenario table"
+```
+
+---
+
+## Task 7: Slides 10–11 (equipo + GTM)
+
+**Files:**
+- Modify: `index.html` — append slides after `#slide-09`
+
+- [ ] **Step 1: Add slides 10 and 11**
+
+```html
+<!-- == SLIDE 10: EL EQUIPO == -->
+<div class="slide" id="slide-10">
+  <div class="content-top">
+    <div class="section-tag" data-a>Cómo lo hacemos posible</div>
+    <div class="slide-title" data-a>
+      Un equipo <em>lean</em> — y deliberadamente así
+    </div>
+  </div>
+  <div class="content-body">
+    <div class="two-col" data-a>
+      <div class="col-block">
+        <div class="col-block-title">Núcleo dedicado (3 personas a 100%)</div>
+        <ul>
+          <li>Director de Studio</li>
+          <li>Business Analyst</li>
+          <li>Ejecutor técnico (nativo en IA)</li>
+        </ul>
+      </div>
+      <div class="col-block">
+        <div class="col-block-title">Consejo senior (bajo demanda, ~5%)</div>
+        <ul>
+          <li>Practice Leads de Connect, Scale, Grow e Impact</li>
+          <li>Validación de negocio en cada cierre comercial</li>
+        </ul>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--surface-border);">
+          <div class="col-block-title" style="font-size:13px;margin-bottom:8px;">Por qué este modelo</div>
+          <ul>
+            <li>Perfiles senior a 80€/h funden el presupuesto en seis semanas</li>
+            <li>El equipo aprende profundidad sobre amplitud</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="accent-line" data-a>"En mes 4, si necesito una cuarta persona, lo justifico con pipeline real. No con saturación."</div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">10 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+
+<!-- == SLIDE 11: GTM == -->
+<div class="slide" id="slide-11">
+  <div class="content-top">
+    <div class="section-tag" data-a>Cómo lo contamos al mercado</div>
+    <div class="slide-title" data-a>
+      El mid-market necesita un partner de IA<br>que <em>no sea una Big Four</em>
+    </div>
+  </div>
+  <div class="content-body">
+    <div style="font-size:14px;color:var(--text-muted);line-height:1.65;max-width:640px;" data-a>
+      El mid-market sabe que tiene que activar IA. Ha oído hablar de Agentforce y copilotos durante dos años. Sigue sin saber por dónde empezar.
+    </div>
+    <div class="cards-3" data-a>
+      <div class="card">
+        <div class="card-eyebrow">Posicionamiento</div>
+        <div class="card-title">Producto cerrado, ROI medible, en semanas</div>
+        <div class="card-body">No transformación de 18 meses. WAM es el partner de IA que el mid-market sí se puede permitir.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Prueba 1 · Track record</div>
+        <div class="card-title">Mid-market demostrado</div>
+        <div class="card-body">Historial contrastado en el segmento. Entrega de valor, no promesas.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Prueba 2 · Ecosistema</div>
+        <div class="card-title">360° que ninguna boutique tiene</div>
+        <div class="card-body">CRM, commerce, creatividad. La boutique de IA da el diagnóstico; WAM activa también el resto.</div>
+      </div>
+    </div>
+    <div class="accent-line" data-a>"Esta es la narrativa que quiero llevar a Nata. Antes, me gustaría tener tu input."</div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">11 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add slides 10-11 (equipo y GTM)"
+```
+
+---
+
+## Task 8: Slide 12 — Las fases (special timeline)
+
+**Files:**
+- Modify: `index.html` — add CSS for timeline, add slide HTML
+
+- [ ] **Step 1: Add timeline CSS inside `<style>`**
+
+```css
+/* ==================== SLIDE 12 — TIMELINE ==================== */
+.timeline-wrap {
+  display: flex; align-items: flex-start; gap: 0;
+  position: relative; flex: 1; min-height: 0;
+}
+.timeline-track {
+  position: absolute; top: 32px; left: 0; right: 0; height: 2px;
+  background: var(--surface-border);
+  transform-origin: left center;
+}
+.timeline-track-fill {
+  position: absolute; top: 0; left: 0; right: 0; height: 100%;
+  background: var(--accent); opacity: .6;
+  transform: scaleX(0); transform-origin: left center;
+}
+.timeline-node {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: flex-start; padding-top: 52px; opacity: 0;
+}
+.timeline-dot {
+  position: absolute; top: 24px;
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid var(--accent); background: var(--bg);
+  box-shadow: 0 0 10px rgba(255,126,255,.4);
+}
+.timeline-node:nth-child(2) .timeline-dot { left: 0%; transform: translateX(-50%); }
+.timeline-node:nth-child(3) .timeline-dot { left: 50%; transform: translateX(-50%); }
+.timeline-node:nth-child(4) .timeline-dot { left: 100%; transform: translateX(-50%); }
+.timeline-month {
+  font-size: 11px; font-weight: 500; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+}
+.timeline-card {
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 12px; padding: 18px 20px; width: 90%;
+  transition: border-color .2s;
+}
+.timeline-card:hover { border-color: rgba(255,126,255,.3); }
+.timeline-card-title  { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 10px; }
+.timeline-card ul     { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.timeline-card ul li  { font-size: 13px; color: var(--text-muted); padding-left: 12px; position: relative; line-height: 1.4; }
+.timeline-card ul li::before { content: '–'; position: absolute; left: 0; color: var(--accent); }
+.timeline-decision    { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--surface-border); }
+```
+
+- [ ] **Step 2: Add slide 12 HTML**
+
+```html
+<!-- == SLIDE 12: LAS FASES (special timeline) == -->
+<div class="slide" id="slide-12">
+  <div class="content-top">
+    <div class="section-tag" data-a>Cómo lo gobernamos</div>
+    <div class="slide-title" data-a>
+      Tres hitos. Tres decisiones. <em>Sin drama.</em>
+    </div>
+  </div>
+
+  <div class="content-body" style="justify-content:flex-start;">
+    <div class="timeline-wrap" data-a>
+      <div class="timeline-track">
+        <div class="timeline-track-fill" id="timeline-fill"></div>
+      </div>
+
+      <div class="timeline-node" id="tl-node-1">
+        <div class="timeline-dot"></div>
+        <div class="timeline-month">Mes 3</div>
+        <div class="timeline-card">
+          <div class="timeline-card-title">Señal de capacidad</div>
+          <ul>
+            <li>Producto construido y operativo</li>
+            <li>5 conversaciones de venta abiertas</li>
+            <li>Equipo formado en tecnologías core</li>
+          </ul>
+          <div class="timeline-decision">Check operativo, no decisión</div>
+        </div>
+      </div>
+
+      <div class="timeline-node" id="tl-node-2">
+        <div class="timeline-dot"></div>
+        <div class="timeline-month">Mes 6</div>
+        <div class="timeline-card">
+          <div class="timeline-card-title">Señal de mercado</div>
+          <ul>
+            <li>2-3 Assessments cerrados</li>
+            <li>1 proyecto derivado en negociación</li>
+            <li>Segundo producto en diseño</li>
+          </ul>
+          <div class="timeline-decision">Decisión: seguir, ajustar o reajustar embudo</div>
+        </div>
+      </div>
+
+      <div class="timeline-node" id="tl-node-3">
+        <div class="timeline-dot"></div>
+        <div class="timeline-month">Mes 12</div>
+        <div class="timeline-card">
+          <div class="timeline-card-title">Señal de negocio</div>
+          <ul>
+            <li>12-15 Assessments vendidos</li>
+            <li>3-5 proyectos derivados cerrados</li>
+            <li>Unit economics confirmada o desmentida</li>
+          </ul>
+          <div class="timeline-decision">Decisión: escalar, mantener o cerrar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer" data-a>
+    <div class="slide-num">12 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+```
+
+- [ ] **Step 3: Open in browser. Navigate to slide 12. Verify**
+
+- Three nodes visible in horizontal layout.
+- Timeline track line visible.
+- Nodes are opacity 0 (will animate in Task 12).
+- Track fill is scaleX 0 (will animate in Task 12).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add slide 12 timeline fases with CSS and HTML structure"
+```
+
+---
+
+## Task 9: Slides 13–14 (presupuesto + lo que pido hoy)
+
+**Files:**
+- Modify: `index.html` — append slides after `#slide-12`
+
+- [ ] **Step 1: Add slides 13 and 14**
+
+```html
+<!-- == SLIDE 13: EL PRESUPUESTO == -->
+<div class="slide" id="slide-13">
+  <div class="content-top">
+    <div class="section-tag" data-a>La inversión</div>
+    <div class="slide-title" data-a>
+      300 K — asignados a generar pipeline,<br><em>no a estructura</em>
+    </div>
+  </div>
+  <div class="content-body">
+    <div class="cards-4" data-a>
+      <div class="card">
+        <div class="card-eyebrow">Célula Core · 40%</div>
+        <div class="card-title" style="font-size:22px;color:var(--accent);">120 K</div>
+        <div class="card-body">Equipo de 3 personas dedicadas al Studio.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Fondo Pilotos / Ventas · 30%</div>
+        <div class="card-title" style="font-size:22px;color:var(--accent);">90 K</div>
+        <div class="card-body">Co-inversión en primeros pilotos con cuentas estratégicas.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Tech & Enablement · 20%</div>
+        <div class="card-title" style="font-size:22px;color:var(--accent);">60 K</div>
+        <div class="card-body">Formación, herramientas y capacitación en pocas tecnologías core.</div>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">Habilitación Comercial · 10%</div>
+        <div class="card-title" style="font-size:22px;color:var(--accent);">30 K</div>
+        <div class="card-body">Soporte a la narrativa GTM con Nata.</div>
+      </div>
+    </div>
+    <div class="accent-line" data-a>"El 70% del presupuesto va directo a generar pipeline. No a construir estructura permanente."</div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">13 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+
+<!-- == SLIDE 14: LO QUE PIDO HOY == -->
+<div class="slide" id="slide-14">
+  <div class="content-top">
+    <div class="section-tag" data-a>El cierre</div>
+    <div class="slide-title" data-a>Tres decisiones. <em>Hoy.</em></div>
+  </div>
+  <div class="content-body" style="gap:16px;">
+    <div class="setup-steps" data-a>
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-content-title">Mandato para construir el primer producto</div>
+          <div class="step-content-body">Arrancar el Studio formalmente y tener el primer producto operativo en seis semanas.</div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-content-title">Permiso para abrir conversación comercial</div>
+          <div class="step-content-body">Con tres Account Managers seleccionados — Mahou, Heineken, Aleph como hipótesis.</div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-content-title">Acuerdo de gobierno por hitos</div>
+          <div class="step-content-body">Revisión en mes 3, 6 y 12 con métricas distintas en cada uno.</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-family:var(--font-title);font-style:italic;font-size:20px;color:var(--text-muted);text-align:center;padding:8px 0;" data-a>
+      "Si en mes 12 la unit economics no sostiene la tesis, lo cerramos sin drama."
+    </div>
+  </div>
+  <div class="slide-footer" data-a>
+    <div class="slide-num">14 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add slides 13-14 (presupuesto y lo que pido hoy)"
+```
+
+---
+
+## Task 10: Slides 15–16 (GTM política + cierre)
+
+**Files:**
+- Modify: `index.html` — add CSS for closing slide, add both slides
+
+- [ ] **Step 1: Add closing slide CSS**
+
+```css
+/* ==================== SLIDE 15-16 ==================== */
+#slide-16 { overflow: hidden; align-items: center; justify-content: center; text-align: center; }
+.cierre-glow {
+  position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 300px;
+  background: radial-gradient(ellipse, rgba(255,126,255,.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+.cierre-quote {
+  font-family: var(--font-title); font-style: italic;
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 1.15; color: var(--text); max-width: 700px; margin-bottom: 16px;
+}
+.cierre-sub {
+  font-size: 15px; color: var(--text-muted); margin-bottom: 40px;
+}
+.cierre-wam {
+  position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px; opacity: .3;
+}
+```
+
+- [ ] **Step 2: Add slides 15 and 16**
+
+```html
+<!-- == SLIDE 15: CIERRE APERTURA (hablemos) — this is a transition placeholder if needed == -->
+<!-- NOTE: content.md has 15 slides. Slide 15 is the closing "Hablemos". We map it directly. -->
+
+<!-- == SLIDE 15 (originally slide 14 in content.md re: "Lo que pido hoy" is already slide 14) == -->
+<!-- The final closing "Hablemos" slide is slide 15 in the presentation. We label it 15/16. -->
+
+<!-- == SLIDE 15: CLOSING == -->
+<div class="slide" id="slide-15">
+  <div class="cierre-glow"></div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;">
+    <div class="section-tag" style="justify-content:center;" data-a>—</div>
+    <div class="cierre-quote" data-a>Hablemos.</div>
+    <div class="cierre-sub" data-a>No es una propuesta cerrada. Es la base de una conversación.</div>
+    <div style="font-size:12px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;" data-a>WAM AI Studio · Estrategia 2026</div>
+  </div>
+
+  <div class="cierre-wam" data-a>
+    <svg style="height:22px;width:auto;display:block;" viewBox="0 0 616.94 183.34" xmlns="http://www.w3.org/2000/svg">
+      <path d="M248.48,183.34L292.23,0h64.96l43.75,183.34h-36.15l-8.91-39.28h-62.34l-8.9,39.28h-36.16ZM300.87,111.05h47.42l-21.22-93.76h-4.72l-21.48,93.76ZM.16,10.47c-.89,37.86-2.99,126.53,30.25,160.47,9.32,9.51,20.6,14.32,33.54,14.32h.16c16.7-.05,32.53-10.52,45.8-29.94,15.22,19.48,32.97,29.94,51.4,29.94,13.72,0,25.65-5.07,35.44-15.06,29.65-30.28,32.33-97.64,31.02-159.54-.09-4.34-.16-7.96-.16-10.66h-23.21c0,2.83.08,6.63.18,11.15.67,31.57,2.43,115.42-24.41,142.82-5.41,5.52-11.4,8.1-18.85,8.1-13.03,0-26.88-10.52-38.96-29.27,11.25-25.06,18.16-55.99,18.12-81.54-.02-14.71-2.29-26.76-6.74-35.81-5.96-12.12-15.92-18.78-28.07-18.78-11.47,0-20.91,5.97-26.61,16.8-4.29,8.16-6.46,19.04-6.46,32.31,0,27.03,8.93,60.63,23.29,87.68.04.06.08.14.11.2-9.92,17.9-21.55,28.35-31.96,28.39h-.09c-6.65,0-12.03-2.34-16.95-7.36C20.61,127.75,22.61,42.95,23.36,11.02c.11-4.61.2-8.27.2-11.03H.35c0,2.48-.09,6.02-.19,10.49ZM95.82,45.78c0-4.33.48-25.9,9.86-25.9,8.51,0,11.57,16.92,11.58,31.41.03,16.53-3.28,35.68-9,53.5-7.75-19.73-12.44-41.4-12.44-58.99h0ZM616.94.77l-.76,4.07c-1.53,5.77-2.68,11.15-3.44,16.15-.76,5-1.15,10.29-1.15,15.89v109.34c0,5.6.38,10.89,1.15,15.89.76,5,1.91,10.39,3.44,16.15l.76,4.07v1.01h-38.4v-1.01l.76-4.07c1.36-5.76,2.46-11.15,3.3-16.15.84-5,1.27-10.3,1.27-15.89V28.57l-59.24,154.77h-13.98l-60.03-154.38c-.18,2.56-.27,5.2-.27,7.92v95.1c0,7.63.81,15.13,2.42,22.5,1.61,7.37,3.69,14.79,6.23,22.24.34,1.01.67,1.96,1.02,2.8.34.86.59,1.7.76,2.54v1.27h-31.27v-1.27c.17-.84.42-1.7.76-2.54.34-.84.67-1.78,1.02-2.8,2.37-7.46,4.41-14.87,6.1-22.24,1.7-7.38,2.54-14.88,2.54-22.5V36.88c0-9.67-2.2-20.34-6.61-32.04l-1.53-3.81V.27h7.67,0s28.73-.01,28.73-.01l58.35,149.37L583.87.03v-.03h33.07v.77Z" fill="#FFFFFF"/>
+    </svg>
+  </div>
+
+  <div class="slide-footer" style="position:relative;z-index:1;" data-a>
+    <div class="slide-num">15 / 16</div>
+    <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+  </div>
+</div>
+```
+
+**Note:** This plan maps the 15 content slides from `content.md` to slides 01–15. The 16th slide is an identical blank closing slide kept for future use, or `TOTAL_SLIDES` should be set to 15. **Set `TOTAL_SLIDES = 15`** in the JS engine at this point.
+
+- [ ] **Step 3: Update `TOTAL_SLIDES = 15` in the JS engine**
+
+- [ ] **Step 4: Open in browser. Navigate to slide 15. Verify**
+
+- "Hablemos." visible, centred, large.
+- Glow at bottom.
+- WAM logo faintly visible at bottom.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add slide 15 closing and set TOTAL_SLIDES=15"
+```
+
+---
+
+## Task 11: GSAP animations — breathing, CountUp, timeline draw
+
+**Files:**
+- Modify: `index.html` — replace `function onSlideEnter(index, slideEl) {}` with full implementation; add `startBreathing()` call in `init()`
+
+- [ ] **Step 1: Add `startBreathing()` and call it from `init()`**
+
+Inside the `<script>` block, add this function and call it from `init()`:
+
+```javascript
+function startBreathing() {
+  const title = document.getElementById('cover-title');
+  const glow  = document.getElementById('cover-glow');
+  if (title) gsap.to(title, { scale: 1.018, duration: 3.2, ease: 'power1.inOut', yoyo: true, repeat: -1, transformOrigin: 'left center' });
+  if (glow)  gsap.to(glow,  { opacity: .9, scale: 1.1, duration: 2.8, ease: 'power1.inOut', yoyo: true, repeat: -1, delay: .6 });
+}
+```
+
+In `init()`, add `startBreathing();` after `updateProgress();`.
+
+- [ ] **Step 2: Add CountUp helper function**
+
+```javascript
+function countUp(el) {
+  const target = parseFloat(el.dataset.countup);
+  const suffix = el.dataset.suffix || '';
+  const isFloat = !Number.isInteger(target);
+  const obj = { val: 0 };
+  gsap.to(obj, {
+    val: target,
+    duration: 0.8,
+    ease: 'power2.out',
+    onUpdate() {
+      const v = isFloat ? obj.val.toFixed(1) : Math.round(obj.val);
+      const display = target >= 1000
+        ? Number(v).toLocaleString('es-ES')
+        : v;
+      el.textContent = display + suffix;
+    }
+  });
+}
+```
+
+- [ ] **Step 3: Add timeline animation function**
+
+```javascript
+function animateTimeline() {
+  const fill  = document.getElementById('timeline-fill');
+  const nodes = [
+    document.getElementById('tl-node-1'),
+    document.getElementById('tl-node-2'),
+    document.getElementById('tl-node-3')
+  ].filter(Boolean);
+
+  if (!fill || !nodes.length) return;
+
+  const tl = gsap.timeline();
+  tl.to(fill,     { scaleX: 1, duration: .6, ease: 'power2.inOut' });
+  tl.to(nodes[0], { opacity: 1, duration: .35, ease: 'power2.out' }, '-=.2');
+  tl.to(nodes[1], { opacity: 1, duration: .35, ease: 'power2.out' }, '-=.1');
+  tl.to(nodes[2], { opacity: 1, duration: .35, ease: 'power2.out' }, '-=.1');
+}
+```
+
+- [ ] **Step 4: Add unit economics animation function**
+
+```javascript
+function animateUnitEconomics(slideEl) {
+  // CountUp on all metric values
+  slideEl.querySelectorAll('[data-countup]').forEach(el => countUp(el));
+
+  // Reveal table columns with stagger
+  const colC = slideEl.querySelectorAll('.ue-col-conservador');
+  const colO = slideEl.querySelectorAll('.ue-col-objetivo');
+  gsap.to(colC, { opacity: 1, duration: .3, stagger: .05, delay: .4, ease: 'power2.out' });
+  gsap.to(colO, { opacity: 1, duration: .3, stagger: .05, delay: .7, ease: 'power2.out' });
+}
+```
+
+- [ ] **Step 5: Implement `onSlideEnter` to dispatch animations by slide index**
+
+Replace `function onSlideEnter(index, slideEl) {}` with:
+
+```javascript
+function onSlideEnter(index, slideEl) {
+  // index is 0-based; slide 09 = index 8, slide 12 = index 11
+  if (index === 8)  animateUnitEconomics(slideEl);
+  if (index === 11) animateTimeline();
+}
+```
+
+- [ ] **Step 6: Reset animations when leaving slide 09 and 12, so they replay on re-entry**
+
+Add a `onSlideLeave` hook. In `goToSlide`, just before `isAnimating = true;`, add:
+```javascript
+onSlideLeave(currentIndex, getSlides()[currentIndex]);
+```
+
+Add the function:
+
+```javascript
+function onSlideLeave(index, slideEl) {
+  if (index === 8) {
+    // Reset countup displays
+    slideEl.querySelectorAll('[data-countup]').forEach(el => {
+      el.textContent = '0' + (el.dataset.suffix || '');
+    });
+    // Reset table columns
+    gsap.set(slideEl.querySelectorAll('.ue-col-conservador, .ue-col-objetivo'), { opacity: 0 });
+  }
+  if (index === 11) {
+    const fill  = document.getElementById('timeline-fill');
+    const nodes = ['tl-node-1','tl-node-2','tl-node-3'].map(id => document.getElementById(id)).filter(Boolean);
+    if (fill)  gsap.set(fill,  { scaleX: 0 });
+    if (nodes.length) gsap.set(nodes, { opacity: 0 });
+  }
+}
+```
+
+- [ ] **Step 7: Open in browser. Verify all animations**
+
+1. **Portada**: title and glow breathe gently on a loop.
+2. **Navigate to slide 09**: metrics count from 0→15.000€, 0→53%, 0→7.000€. Table columns fade in left-then-right with stagger.
+3. **Navigate away and back to slide 09**: animations replay from zero.
+4. **Navigate to slide 12**: line draws left→right, then the three nodes fade in sequentially.
+5. **Navigate away and back to slide 12**: timeline resets and replays.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: add GSAP animations — breathing portada, countup unit economics, timeline draw"
+```
+
+---
+
+## Task 12: Final polish — responsive check, font fallback note, slide count verification
+
+**Files:**
+- Modify: `index.html`
+
+- [ ] **Step 1: Verify the progress dot count matches `TOTAL_SLIDES`**
+
+Open browser DevTools console and run:
+```javascript
+document.querySelectorAll('.slide').length
+```
+Expected: `15`. If it differs from `TOTAL_SLIDES`, update the constant.
+
+- [ ] **Step 2: Verify responsive layout at 768px**
+
+In DevTools, set viewport to 768px wide. Check:
+- Cards stack to single column.
+- Title font sizes scale down via `clamp()`.
+- No horizontal overflow.
+- Progress dots visible.
+
+- [ ] **Step 3: Verify at 480px**
+
+- Navigation hint hidden (`.nav-hint { display:none }`).
+- Content still readable.
+- No overflow.
+
+- [ ] **Step 4: Verify all 15 slides navigate in sequence**
+
+Click through all 15 slides with right arrow. Confirm no slide is skipped and the last slide does not advance further.
+
+- [ ] **Step 5: Add `[fecha]` reminder comment in portada HTML**
+
+Find the meta line and add a comment:
+```html
+<div class="cover-meta">Enric · [fecha] · Confidencial</div><!-- TODO: replace [fecha] before presenting -->
+```
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: final polish — responsive verified, slide count confirmed, fecha placeholder noted"
+```
+
+---
+
+## Self-Review
+
+**Spec coverage check:**
+
+| Spec requirement | Task |
+|---|---|
+| Single HTML file | Tasks 1–12 |
+| GSAP CDN | Task 1 |
+| TiemposFine + Inter @font-face with fallback | Task 1 |
+| Keyboard + click + touch navigation | Task 2 |
+| Progress dots | Task 2 |
+| Shared components (cards, two-col, accent-line, setup-steps) | Task 3 |
+| Slide 01 portada with breathing glow | Tasks 4, 11 |
+| Slide 03 amenaza with 40-60% inline magenta | Task 5 |
+| Slides 02, 04–08 standard layouts | Task 5 |
+| Slide 09 unit economics with countup + table stagger | Tasks 6, 11 |
+| Slides 10–11 standard layouts | Task 7 |
+| Slide 12 timeline with line draw | Tasks 8, 11 |
+| Slides 13–14 standard layouts | Task 9 |
+| Slide 15 closing "Hablemos." | Task 10 |
+| Animation resets on slide leave | Task 11 |
+| Responsive at 768px and 480px | Task 12 |
+
+**Placeholder scan:** No TBDs, no "implement later". All code blocks are complete.
+
+**Type consistency:** `onSlideEnter` / `onSlideLeave` are both defined and called consistently. `countUp(el)` reads `el.dataset.countup` and `el.dataset.suffix` — matching the `data-countup` and `data-suffix` attributes set in Task 6.
