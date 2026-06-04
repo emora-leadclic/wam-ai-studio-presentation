@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WAM Studio de Innovación — Propuesta</title>
+  <title>WAM Innovation — Plan 2026</title>
   <style>
     /* ==================== FONTS ==================== */
     @font-face {
@@ -31,21 +31,20 @@
     :root {
       --bg:             #080808;
       --text:           #ffffff;
-      --text-muted:     #555555;
-      --text-dim:       #333333;
+      --text-muted:     #aaaaaa;
+      --text-dim:       #666666;
       --accent:         #FF7EFF;
       --accent-glow:    rgba(255, 126, 255, 0.15);
       --accent-glow-lg: rgba(255, 126, 255, 0.08);
-      --surface:        rgba(255, 255, 255, 0.03);
-      --surface-border: rgba(255, 255, 255, 0.07);
-      --font-title:     'TiemposFine', Georgia, serif;
-      --font-body:      'Inter', system-ui, -apple-system, sans-serif;
-      --slide-pad-x:    72px;
-      --slide-pad-y:    52px;
-      --transition-dur: 0.5s;
+      --surface:        rgba(255, 255, 255, 0.04);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --font-title:     'TiemposFine', serif;
+      --font-body:      'Inter', sans-serif;
+      --pad-x:          72px;
+      --pad-y:          52px;
     }
 
-    /* ==================== RESET & BASE ==================== */
+    /* ==================== RESET ==================== */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
       width: 100%; height: 100%;
@@ -64,20 +63,18 @@
     }
     .slide {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      inset: 0;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 28px;
-      padding: var(--slide-pad-y) var(--slide-pad-x);
+      padding: var(--pad-y) var(--pad-x);
       opacity: 0;
       pointer-events: none;
-      will-change: transform, opacity;
+      /* will-change set dynamically in go() to avoid promoting all 18 slides at once */
     }
     .slide.is-active { pointer-events: auto; }
 
-    /* ==================== PROGRESS ==================== */
+    /* ==================== PROGRESS DOTS ==================== */
     #progress {
       position: fixed;
       bottom: 28px; left: 50%;
@@ -86,11 +83,11 @@
       z-index: 200;
     }
     .dot {
-      border-radius: 50%;
-      background: #222;
-      transition: width .3s, height .3s, background .3s, box-shadow .3s;
-      cursor: pointer;
       width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #333;
+      cursor: pointer;
+      transition: width .3s, height .3s, background .3s, box-shadow .3s;
     }
     .dot.is-active {
       width: 8px; height: 8px;
@@ -98,28 +95,13 @@
       box-shadow: 0 0 8px rgba(255,126,255,.6);
     }
 
-    /* ==================== RESPONSIVE ==================== */
-    @media (max-width: 768px) {
-      :root { --slide-pad-x: 28px; --slide-pad-y: 32px; }
-      .slide-title { font-size: clamp(28px, 8vw, 44px) !important; }
-      .cards-3, .cards-2 { grid-template-columns: 1fr !important; gap: 12px; }
-      .cards-4 { grid-template-columns: 1fr !important; gap: 12px; }
-      .cards-4-h { grid-template-columns: 1fr 1fr !important; gap: 12px; }
-      .two-col { grid-template-columns: 1fr !important; gap: 12px; }
-      #progress { bottom: 16px; }
-    }
-    @media (max-width: 480px) {
-      :root { --slide-pad-x: 20px; --slide-pad-y: 24px; }
-      .nav-hint { display: none; }
-    }
-
     /* ==================== WAM LOGO ==================== */
     .wam-logo { display: flex; align-items: center; gap: 10px; }
-    .wam-bar  { width: 4px; height: 24px; background: var(--accent); border-radius: 2px; }
-    .wam-wordmark { font-family: var(--font-body); font-weight: 500; font-size: 12px; letter-spacing: 4px; color: var(--text); }
+    .wam-bar  { width: 4px; height: 24px; background: var(--accent); border-radius: 2px; flex-shrink: 0; }
 
-    /* ==================== SECTION TAG (kicker) ==================== */
+    /* ==================== SECTION TAG ==================== */
     .section-tag {
+      font-family: var(--font-body);
       font-size: 10px; font-weight: 500; letter-spacing: 3px;
       text-transform: uppercase; color: var(--accent);
       display: flex; align-items: center; gap: 12px;
@@ -133,213 +115,610 @@
     /* ==================== SLIDE TITLE ==================== */
     .slide-title {
       font-family: var(--font-title);
-      font-size: 54px; font-weight: 400;
-      line-height: 1.1; letter-spacing: -0.5px;
-      color: var(--text);
+      font-size: clamp(32px, 4vw, 54px);
+      font-weight: 400; line-height: 1.1; letter-spacing: -0.5px;
     }
     .slide-title em { font-style: italic; color: var(--accent); }
+
+    /* ==================== SLIDE SUBTITLE ==================== */
+    .slide-subtitle {
+      font-family: var(--font-body);
+      font-size: 15px; color: var(--text-muted); line-height: 1.6;
+    }
 
     /* ==================== SLIDE FOOTER ==================== */
     .slide-footer {
       display: flex; align-items: center;
-      justify-content: space-between; padding-bottom: 8px;
+      justify-content: space-between;
     }
-    .slide-num { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; font-variant-numeric: tabular-nums; }
-    .nav-hint  { display: flex; align-items: center; gap: 6px; }
-    .nav-key   {
+    .slide-num {
+      font-family: var(--font-body);
+      font-size: 11px; color: var(--text-dim);
+      letter-spacing: 1px; font-variant-numeric: tabular-nums;
+    }
+    .nav-hint { display: flex; align-items: center; gap: 6px; }
+    .nav-key {
       background: rgba(255,255,255,.04);
       border: 1px solid rgba(255,255,255,.1);
       border-radius: 4px; padding: 2px 8px;
       font-size: 10px; color: var(--text-dim);
+      font-family: var(--font-body);
     }
 
     /* ==================== CONTENT WRAPPERS ==================== */
-    .content-top  { display: flex; flex-direction: column; gap: 20px; }
+    .content-top  { display: flex; flex-direction: column; gap: 16px; }
     .content-body {
-      flex: 1; min-height: 0; overflow: hidden;
+      flex: 1; min-height: 0;
       display: flex; flex-direction: column;
-      justify-content: center; gap: 24px;
+      justify-content: center; gap: 20px;
     }
 
     /* ==================== CARDS ==================== */
     .cards-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
     .cards-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
     .cards-4 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
-    .cards-4-h { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .cards-4h { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
     .card {
-      background: var(--surface); border: 1px solid var(--surface-border);
-      border-radius: 12px; padding: 24px;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 22px;
       transition: transform .2s ease, border-color .2s ease;
-      cursor: default; position: relative;
     }
-    .card:hover { transform: translateY(-3px); border-color: rgba(255,126,255,.3); }
-    /* Card info tooltip */
-    .card-info-icon {
-      position: absolute; top: 12px; right: 12px;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: rgba(255,126,255,.1); border: 1px solid rgba(255,126,255,.25);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; color: var(--accent); font-style: normal; cursor: default;
-    }
-    .card-tooltip {
-      position: absolute; inset: 0; border-radius: 12px;
-      background: rgba(8,8,8,.97); border: 1px solid rgba(255,126,255,.25);
-      padding: 18px 20px; opacity: 0; pointer-events: none;
-      transition: opacity .2s; overflow-y: auto; z-index: 10;
-    }
-    .card:hover .card-tooltip { opacity: 1; pointer-events: auto; transform: none; }
-    .card-tooltip-header { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
-    .card-tooltip-item { margin-bottom: 10px; }
-    .card-tooltip-item:last-child { margin-bottom: 0; }
-    .card-tooltip-num { font-size: 10px; color: var(--accent); font-weight: 500; margin-bottom: 2px; }
-    .card-tooltip-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
-    .card-tooltip-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 2px; }
-    .card-tooltip-body { font-size: 10px; color: var(--text-dim); line-height: 1.4; }
+    .card:hover { transform: translateY(-3px); border-color: rgba(255,126,255,.25); }
     .card-eyebrow {
+      font-family: var(--font-body);
       font-size: 10px; font-weight: 500; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
     }
-    .card-title  { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
-    .card-body   { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+    .card-title {
+      font-family: var(--font-body);
+      font-size: 15px; font-weight: 500; color: var(--text);
+      margin-bottom: 8px; line-height: 1.4;
+    }
+    .card-body {
+      font-family: var(--font-body);
+      font-size: 14px; color: var(--text-muted); line-height: 1.65;
+    }
 
-    /* ==================== TWO-COL ==================== */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    /* ==================== TWO-COL BLOCKS ==================== */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .col-block {
-      background: var(--surface); border: 1px solid var(--surface-border);
-      border-radius: 12px; padding: 24px;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 22px;
     }
-    .col-block-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 14px; letter-spacing: .3px; }
-    .col-block ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .col-block-title {
+      font-family: var(--font-body);
+      font-size: 14px; font-weight: 500; color: var(--text);
+      margin-bottom: 12px;
+    }
+    .col-block ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
     .col-block ul li {
       font-size: 14px; color: var(--text-muted); line-height: 1.5;
-      padding-left: 14px; position: relative;
+      padding-left: 14px; position: relative; font-family: var(--font-body);
     }
     .col-block ul li::before { content: '–'; position: absolute; left: 0; color: var(--accent); }
 
-    /* ==================== ACCENT LINE (quote) ==================== */
+    /* ==================== ACCENT QUOTE LINE ==================== */
     .accent-line {
-      font-family: var(--font-title); font-style: italic;
-      font-size: 18px; color: var(--accent);
+      font-family: var(--font-title);
+      font-style: italic; font-size: 17px; color: var(--accent);
       border-left: 2px solid var(--accent);
       padding-left: 16px; line-height: 1.4;
     }
 
-    /* ==================== SETUP STEPS (numbered) ==================== */
-    .setup-steps { display: flex; flex-direction: column; gap: 16px; }
-    .setup-step  {
+    /* ==================== NUMBERED STEPS ==================== */
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step {
       display: flex; align-items: flex-start; gap: 20px;
-      background: var(--surface); border: 1px solid var(--surface-border);
-      border-radius: 12px; padding: 20px 24px;
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 18px 22px;
       transition: border-color .2s;
     }
-    .setup-step:hover { border-color: rgba(255,126,255,.3); }
-    .step-num { font-family: var(--font-title); font-style: italic; font-size: 32px; color: var(--accent); line-height: 1; flex-shrink: 0; width: 32px; }
-    .step-content-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
-    .step-content-body  { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+    .step:hover { border-color: rgba(255,126,255,.25); }
+    .step-num {
+      font-family: var(--font-title); font-style: italic;
+      font-size: 30px; color: var(--accent); line-height: 1; flex-shrink: 0; width: 28px;
+    }
+    .step-title {
+      font-family: var(--font-body);
+      font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px;
+    }
+    .step-body {
+      font-family: var(--font-body);
+      font-size: 14px; color: var(--text-muted); line-height: 1.6;
+    }
 
-    /* ==================== SLIDE 01 — COVER ==================== */
-    #slide-01 { position: relative; overflow: hidden; }
+    /* ==================== TABLE ==================== */
+    .table-wrap {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-family: var(--font-body);
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--text-dim);
+      padding: 10px 16px; text-align: left;
+      border-bottom: 1px solid var(--surface-border);
+    }
+    tbody td {
+      font-family: var(--font-body);
+      font-size: 13px; color: var(--text-muted);
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.03);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody td:first-child { color: var(--text); }
+
+    /* ==================== BULLET LIST ==================== */
+    .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .bullet-list li {
+      font-family: var(--font-body);
+      font-size: 13px; color: var(--text-muted); line-height: 1.5;
+      padding-left: 14px; position: relative;
+    }
+    .bullet-list li::before { content: '–'; position: absolute; left: 0; color: var(--accent); }
+    .bullet-list li strong { color: var(--text); font-weight: 500; }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+      :root { --pad-x: 28px; --pad-y: 32px; }
+      .slide-title { font-size: clamp(24px, 7vw, 38px) !important; }
+      .cards-3, .cards-2, .cards-4h { grid-template-columns: 1fr !important; gap: 10px; }
+      .cards-4 { grid-template-columns: 1fr !important; gap: 10px; }
+      .two-col { grid-template-columns: 1fr !important; gap: 10px; }
+      #progress { bottom: 14px; }
+      #slide-09, #slide-11, #slide-12, #slide-13, #slide-14 {
+        overflow-y: auto;
+      }
+    }
+    @media (max-width: 480px) {
+      :root { --pad-x: 18px; --pad-y: 22px; }
+      .nav-hint { display: none; }
+    }
+
+    /* ==================== COVER ==================== */
+    #slide-01 { overflow: hidden; }
+    #cover-canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; opacity: .5;
+    }
     #cover-glow {
       position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
       width: 700px; height: 500px;
-      background: radial-gradient(ellipse, rgba(255,126,255,.12) 0%, transparent 60%);
+      background: radial-gradient(ellipse, rgba(255,126,255,.1) 0%, transparent 62%);
       border-radius: 50%; pointer-events: none; will-change: transform, opacity;
+    }
+    .cover-eyebrow {
+      font-family: var(--font-body);
+      font-size: 10px; font-weight: 500; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 16px;
     }
     #cover-title {
       font-family: var(--font-title);
-      font-size: clamp(52px, 8vw, 96px);
+      font-size: clamp(48px, 7.5vw, 92px);
       font-weight: 400; line-height: 1.05; letter-spacing: -1px;
       color: var(--text); will-change: transform;
     }
     #cover-title em { font-style: italic; color: var(--accent); }
-    .cover-eyebrow {
-      font-size: 10px; font-weight: 500; letter-spacing: 3px;
-      text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+    .cover-subtitle {
+      font-family: var(--font-body);
+      margin-top: 18px; font-size: 16px; color: var(--text-muted);
     }
-    .cover-meta { font-size: 11px; color: var(--text-dim); letter-spacing: .5px; }
+    .cover-meta {
+      font-family: var(--font-body);
+      font-size: 11px; color: var(--text-dim); letter-spacing: .5px;
+    }
+    /* ==================== SLIDE 07 — METRICS ==================== */
+    .principle-box {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px; padding: 14px 18px;
+    }
+    .principle-label {
+      font-family: var(--font-body);
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
+    }
+    .principle-text {
+      font-family: var(--font-body);
+      font-size: 12px; color: var(--text-muted); line-height: 1.6;
+    }
+    .metric-card {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 18px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .metric-label {
+      font-family: var(--font-body);
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent);
+    }
+    .metric-body {
+      font-family: var(--font-body);
+      font-size: 12px; color: var(--text-muted); line-height: 1.5; flex: 1;
+    }
+    .metric-targets { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+    .metric-target-row {
+      font-family: var(--font-body);
+      font-size: 11px; color: var(--text-dim);
+      display: flex; justify-content: space-between; align-items: baseline;
+    }
+    .metric-value {
+      font-family: var(--font-title); font-style: italic;
+      font-size: 20px; color: var(--accent); font-weight: 400;
+    }
+    .slide-note {
+      font-family: var(--font-body);
+      font-size: 10px; color: var(--text-dim); font-style: italic; line-height: 1.5;
+    }
+    /* ==================== ASSET COLUMNS ==================== */
+    .asset-cols { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .asset-col {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 20px;
+    }
+    .asset-col-label {
+      font-family: var(--font-body);
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+    }
+    .asset-col-title {
+      font-family: var(--font-body);
+      font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 10px;
+    }
 
-/* ==================== TABLE (equipo) ==================== */
-.ue-table { width: 100%; border-collapse: collapse; }
-.ue-table th {
-  font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--text-dim); padding: 8px 16px; text-align: right; border-bottom: 1px solid var(--surface-border);
-}
-.ue-table th:first-child { text-align: left; }
-.ue-table td {
-  font-size: 14px; color: var(--text-muted); padding: 10px 16px;
-  border-bottom: 1px solid rgba(255,255,255,.04); text-align: right;
-}
-.ue-table td:first-child { text-align: left; color: var(--text); }
-.ue-table tr.ue-highlight td { color: var(--accent); font-weight: 500; }
-.ue-table-wrap {
-  background: var(--surface); border: 1px solid var(--surface-border);
-  border-radius: 12px; overflow-x: hidden; overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,126,255,.25) transparent;
-}
-.ue-table-wrap::-webkit-scrollbar { width: 3px; }
-.ue-table-wrap::-webkit-scrollbar-track { background: transparent; }
-.ue-table-wrap::-webkit-scrollbar-thumb { background: rgba(255,126,255,.25); border-radius: 2px; }
-.ue-table-wrap::-webkit-scrollbar-thumb:hover { background: rgba(255,126,255,.5); }
+    /* ==================== FLOW STEPS (slide 10) ==================== */
+    .flow-steps { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; }
+    .flow-step {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; padding: 16px 14px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .flow-step-num {
+      font-family: var(--font-title); font-style: italic;
+      font-size: 28px; color: var(--accent); line-height: 1;
+    }
+    .flow-step-label {
+      font-family: var(--font-body);
+      font-size: 12px; font-weight: 500; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--text);
+    }
+    .flow-step-title {
+      font-family: var(--font-body);
+      font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3;
+    }
+    .flow-step-body {
+      font-family: var(--font-body);
+      font-size: 13px; color: var(--text-muted); line-height: 1.5; flex: 1;
+    }
+    .flow-step-owner {
+      font-family: var(--font-body);
+      font-size: 10px; color: var(--text-dim);
+    }
+    .flow-step-owner span { color: var(--accent); font-weight: 500; }
+    .flow-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .flow-bottom-card {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px; padding: 14px 16px;
+    }
+    .flow-bottom-label {
+      font-family: var(--font-body);
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
+    }
+    .flow-bottom-body {
+      font-family: var(--font-body);
+      font-size: 13px; color: var(--text-muted); line-height: 1.5;
+    }
+    @media (max-width: 768px) {
+      .flow-steps { grid-template-columns: 1fr 1fr !important; }
+      .asset-cols  { grid-template-columns: 1fr !important; }
+      .flow-bottom { grid-template-columns: 1fr !important; }
+    }
 
-/* ==================== SLIDE 16 — CLOSING ==================== */
-#slide-16 { overflow: hidden; align-items: center; justify-content: center; text-align: center; }
-.cierre-glow {
-  position: absolute; bottom: -100px; left: 50%; transform: translateX(-50%);
-  width: 600px; height: 300px;
-  background: radial-gradient(ellipse, rgba(255,126,255,.1) 0%, transparent 65%);
-  pointer-events: none;
-}
-.cierre-quote {
-  font-family: var(--font-title); font-style: italic;
-  font-size: clamp(32px, 5vw, 64px);
-  line-height: 1.15; color: var(--text); max-width: 700px; margin-bottom: 16px;
-}
-.cierre-sub {
-  font-size: 15px; color: var(--text-muted); margin-bottom: 40px;
-}
-.cierre-wam {
-  position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 8px; opacity: .3;
-}
+    /* ==================== SLIDE 11 — RACI ==================== */
+    #slide-11 { gap: 0; }
+    .raci-layout { display: grid; grid-template-columns: 58% 42%; gap: 16px; flex: 1; min-height: 0; overflow: hidden; }
+    .raci-panel { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+    .raci-table-wrap {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; overflow: auto; flex: 1;
+      scrollbar-width: thin; scrollbar-color: rgba(255,126,255,.2) transparent;
+    }
+    .raci-table { width: 100%; border-collapse: collapse; }
+    .raci-table th {
+      font-family: var(--font-body);
+      font-size: 9px; font-weight: 500; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--text-dim);
+      padding: 8px 10px; text-align: center;
+      border-bottom: 1px solid var(--surface-border);
+      white-space: nowrap;
+    }
+    .raci-table th:first-child { text-align: left; }
+    .raci-table td {
+      font-family: var(--font-body);
+      font-size: 12px; color: var(--text-muted);
+      padding: 8px 10px; text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,.03);
+    }
+    .raci-table td:first-child { text-align: left; color: var(--text); font-size: 12px; }
+    .raci-table tbody tr:last-child td { border-bottom: none; }
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 6px;
+      font-family: var(--font-body); font-size: 11px; font-weight: 500;
+    }
+    .badge-r { background: rgba(255,126,255,.2); color: var(--accent); border: 1px solid rgba(255,126,255,.4); }
+    .badge-a { background: rgba(255,255,255,.12); color: var(--text); border: 1px solid rgba(255,255,255,.2); }
+    .badge-c { background: rgba(255,255,255,.05); color: #aaa; border: 1px solid rgba(255,255,255,.1); }
+    .badge-i { background: transparent; color: var(--text-dim); border: 1px solid rgba(255,255,255,.06); }
+    .badge-ra { background: rgba(255,126,255,.18); color: var(--accent); border: 1px solid rgba(255,126,255,.35); font-size: 9px; width: auto; padding: 0 6px; }
+    .raci-legend {
+      font-family: var(--font-body);
+      font-size: 10px; color: var(--text-dim); letter-spacing: .5px;
+    }
+    .raci-side { display: flex; flex-direction: column; gap: 8px; overflow: auto; }
+    .raci-side-card {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .raci-side-label {
+      font-family: var(--font-body);
+      font-size: 9px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 5px;
+    }
+    .raci-side-body {
+      font-family: var(--font-body);
+      font-size: 11px; color: var(--text-muted); line-height: 1.5;
+    }
+    .raci-liturgias {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .raci-liturgias-label {
+      font-family: var(--font-body);
+      font-size: 9px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+    }
+    .raci-liturgias ol {
+      list-style: none; display: flex; flex-direction: column; gap: 4px; counter-reset: lit;
+    }
+    .raci-liturgias ol li {
+      font-family: var(--font-body);
+      font-size: 11px; color: var(--text-muted); line-height: 1.4;
+      padding-left: 18px; position: relative; counter-increment: lit;
+    }
+    .raci-liturgias ol li::before {
+      content: counter(lit) ".";
+      position: absolute; left: 0; color: var(--accent); font-size: 10px;
+    }
+    @media (max-width: 768px) {
+      .raci-layout { grid-template-columns: 1fr !important; overflow-y: auto; }
+    }
+
+    /* ==================== SLIDE 12 — LITURGIAS ==================== */
+    .liturgias-table-wrap {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; overflow: auto;
+      scrollbar-width: thin; scrollbar-color: rgba(255,126,255,.2) transparent;
+    }
+    .liturgias-table { width: 100%; border-collapse: collapse; }
+    .liturgias-table thead th {
+      font-family: var(--font-body);
+      font-size: 9px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent);
+      padding: 10px 14px; text-align: left;
+      border-bottom: 1px solid var(--surface-border);
+    }
+    .liturgias-table tbody td {
+      font-family: var(--font-body);
+      font-size: 12px; color: var(--text-muted);
+      padding: 10px 14px; text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,.03);
+      vertical-align: top;
+    }
+    .liturgias-table tbody tr:last-child td { border-bottom: none; }
+    .liturgias-table td:first-child {
+      font-weight: 500; color: var(--text); font-size: 11px;
+      letter-spacing: .5px; white-space: nowrap;
+    }
+    .liturgias-table td.cadencia { color: var(--accent); font-size: 11px; white-space: nowrap; }
+    .liturgias-note {
+      font-family: var(--font-title); font-style: italic;
+      font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-top: 18px;
+    }
+    /* ==================== SLIDE 13 — GTM FLOW ==================== */
+    .gtm-layout { display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; }
+    .gtm-flow-wrapper { position: relative; }
+    .gtm-nodes { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; position: relative; z-index: 2; }
+    .gtm-node-top {
+      background: var(--accent);
+      border-radius: 8px; padding: 10px 12px;
+      text-align: center;
+    }
+    .gtm-node-top-label {
+      font-family: var(--font-body);
+      font-size: 9px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: #080808; margin-bottom: 3px;
+    }
+    .gtm-node-top-sub {
+      font-family: var(--font-body);
+      font-size: 10px; color: rgba(8,8,8,.7);
+    }
+    .gtm-connector-row { height: 24px; position: relative; }
+    .gtm-connector-svg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      overflow: visible;
+    }
+    .gtm-nodes-bottom { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; }
+    .gtm-node-bottom {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px; padding: 10px 12px; text-align: center;
+    }
+    .gtm-node-bottom-owner {
+      font-family: var(--font-body);
+      font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 3px;
+    }
+    .gtm-node-bottom-sub {
+      font-family: var(--font-body);
+      font-size: 10px; color: var(--text-muted);
+    }
+    .gtm-bottom-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .gtm-bottom-card {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .gtm-bottom-label {
+      font-family: var(--font-body);
+      font-size: 9px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 5px;
+    }
+    .gtm-bottom-body {
+      font-family: var(--font-body);
+      font-size: 13px; color: var(--text-muted); line-height: 1.5;
+    }
+    .gtm-key {
+      font-family: var(--font-title); font-style: italic;
+      font-size: 13px; color: var(--accent); line-height: 1.4;
+    }
+    .gtm-key strong { color: var(--text); font-style: normal; font-family: var(--font-body); font-size: 12px; font-weight: 500; }
+    @media (max-width: 768px) {
+      .gtm-nodes, .gtm-nodes-bottom { grid-template-columns: 1fr 1fr !important; }
+      .gtm-bottom-cards { grid-template-columns: 1fr !important; }
+      .gtm-connector-row { display: none; }
+    }
+
+    /* ==================== SLIDE 14 — RISKS ==================== */
+    .risks-wrap {
+      background: var(--surface);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .risks-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+    }
+    .risk-row-risk, .risk-row-mit {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      font-family: var(--font-body);
+    }
+    .risk-row-risk:last-of-type, .risk-row-mit:last-of-type { border-bottom: none; }
+    .risk-header {
+      font-size: 9px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--text-dim);
+      padding: 8px 16px; border-bottom: 1px solid var(--surface-border);
+    }
+    .risk-label {
+      font-size: 10px; font-weight: 500; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 3px;
+    }
+    .risk-body { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .mit-body  { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-top: 16px; }
+    @media (max-width: 768px) {
+      .risks-grid { grid-template-columns: 1fr !important; }
+    }
+
+    /* ==================== SLIDE 15 — BUDGET ==================== */
+    .budget-num {
+      font-family: var(--font-title); font-style: italic;
+      font-size: 26px; color: var(--accent); font-weight: 400;
+      display: block; margin: 8px 0 4px;
+    }
+
+    /* ==================== SLIDE 18 — CLOSING ==================== */
+    #slide-18 {
+      align-items: center; justify-content: center;
+      text-align: center; overflow: hidden;
+    }
+    .closing-glow {
+      position: absolute; bottom: -80px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(255,126,255,.1) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .closing-dash {
+      font-family: var(--font-title); color: var(--accent);
+      font-size: 24px; margin-bottom: 12px;
+    }
+    .closing-quote {
+      font-family: var(--font-title); font-style: italic;
+      font-size: clamp(28px, 4.5vw, 58px);
+      line-height: 1.15; color: var(--text); max-width: 680px;
+    }
+    .closing-quote em { font-style: italic; color: var(--accent); }
+    .closing-sub {
+      font-family: var(--font-body);
+      font-size: 11px; color: var(--text-dim);
+      letter-spacing: 2.5px; text-transform: uppercase; margin-top: 14px; margin-bottom: 36px;
+    }
+    .closing-wam {
+      opacity: .25;
+    }
   </style>
 </head>
 <body>
   <div id="presentation">
-
-    <!-- == SLIDE 01: PORTADA == -->
+    <!-- SLIDE 01: COVER -->
     <div class="slide" id="slide-01">
+      <canvas id="cover-canvas"></canvas>
       <div id="cover-glow"></div>
 
       <div class="wam-logo" data-a>
         <div class="wam-bar"></div>
-        <div class="wam-wordmark">
-          <svg style="height:20px;width:auto;display:block;" viewBox="0 0 616.94 183.34" xmlns="http://www.w3.org/2000/svg">
-            <path d="M248.48,183.34L292.23,0h64.96l43.75,183.34h-36.15l-8.91-39.28h-62.34l-8.9,39.28h-36.16ZM300.87,111.05h47.42l-21.22-93.76h-4.72l-21.48,93.76ZM.16,10.47c-.89,37.86-2.99,126.53,30.25,160.47,9.32,9.51,20.6,14.32,33.54,14.32h.16c16.7-.05,32.53-10.52,45.8-29.94,15.22,19.48,32.97,29.94,51.4,29.94,13.72,0,25.65-5.07,35.44-15.06,29.65-30.28,32.33-97.64,31.02-159.54-.09-4.34-.16-7.96-.16-10.66h-23.21c0,2.83.08,6.63.18,11.15.67,31.57,2.43,115.42-24.41,142.82-5.41,5.52-11.4,8.1-18.85,8.1-13.03,0-26.88-10.52-38.96-29.27,11.25-25.06,18.16-55.99,18.12-81.54-.02-14.71-2.29-26.76-6.74-35.81-5.96-12.12-15.92-18.78-28.07-18.78-11.47,0-20.91,5.97-26.61,16.8-4.29,8.16-6.46,19.04-6.46,32.31,0,27.03,8.93,60.63,23.29,87.68.04.06.08.14.11.2-9.92,17.9-21.55,28.35-31.96,28.39h-.09c-6.65,0-12.03-2.34-16.95-7.36C20.61,127.75,22.61,42.95,23.36,11.02c.11-4.61.2-8.27.2-11.03H.35c0,2.48-.09,6.02-.19,10.49ZM95.82,45.78c0-4.33.48-25.9,9.86-25.9,8.51,0,11.57,16.92,11.58,31.41.03,16.53-3.28,35.68-9,53.5-7.75-19.73-12.44-41.4-12.44-58.99h0ZM616.94.77l-.76,4.07c-1.53,5.77-2.68,11.15-3.44,16.15-.76,5-1.15,10.29-1.15,15.89v109.34c0,5.6.38,10.89,1.15,15.89.76,5,1.91,10.39,3.44,16.15l.76,4.07v1.01h-38.4v-1.01l.76-4.07c1.36-5.76,2.46-11.15,3.3-16.15.84-5,1.27-10.3,1.27-15.89V28.57l-59.24,154.77h-13.98l-60.03-154.38c-.18,2.56-.27,5.2-.27,7.92v95.1c0,7.63.81,15.13,2.42,22.5,1.61,7.37,3.69,14.79,6.23,22.24.34,1.01.67,1.96,1.02,2.8.34.86.59,1.7.76,2.54v1.27h-31.27v-1.27c.17-.84.42-1.7.76-2.54.34-.84.67-1.78,1.02-2.8,2.37-7.46,4.41-14.87,6.1-22.24,1.7-7.38,2.54-14.88,2.54-22.5V36.88c0-9.67-2.2-20.34-6.61-32.04l-1.53-3.81V.27h7.67,0s28.73-.01,28.73-.01l58.35,149.37L583.87.03v-.03h33.07v.77Z" fill="#FFFFFF"/>
-          </svg>
-        </div>
+        <div id="wam-logo-svg"></div>
       </div>
 
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-        <div class="cover-eyebrow" data-a>Dirección de Innovación · Propuesta</div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;">
+        <div class="cover-eyebrow" data-a>Dirección de Innovación · Plan 2026</div>
         <div id="cover-title" data-a>
           Un nuevo motor de<br><em>ingresos</em> para WAM
         </div>
-        <div style="margin-top:20px;font-size:16px;color:var(--text-muted);font-family:var(--font-body);" data-a>
-          Studio de Innovación — visión 12 meses, plan a 6
-        </div>
+        <div class="cover-subtitle" data-a>WAM Innovation — visión 12 meses, plan a 6</div>
       </div>
 
       <div class="slide-footer" data-a>
         <div class="cover-meta">Enric Mora · 01/06/2026</div>
         <div class="nav-hint">
           <span class="nav-key">←</span><span class="nav-key">→</span>
-          <span style="font-size:10px;color:var(--text-dim);margin-left:4px;">navegar</span>
+          <span style="font-size:10px;color:var(--text-dim);margin-left:4px;font-family:var(--font-body);">navegar</span>
         </div>
       </div>
     </div>
 
-    <!-- == SLIDE 02: LA APERTURA == -->
+    <!-- SLIDE 02 -->
     <div class="slide" id="slide-02">
       <div class="content-top">
         <div class="section-tag" data-a>Antes de empezar</div>
@@ -348,70 +727,63 @@
           Es una propuesta para <em>proteger el margen</em><br>en los próximos 18 meses.
         </div>
       </div>
-      <div class="content-body" style="gap:16px;">
-        <div class="setup-steps" data-a>
-          <div class="setup-step">
+      <div class="content-body">
+        <div class="steps" data-a>
+          <div class="step">
             <div class="step-num">1</div>
-            <div>
-              <div class="step-content-body">Convertir las iniciativas de IA ya desarrolladas en la compañía — Enric, Anna, Sira — en aceleradores que los estudios puedan integrar en sus ventas. Y construir nuevos aceleradores validados con el consejo ampliado.</div>
-            </div>
+            <div><div class="step-body">Convertir las iniciativas de IA ya desarrolladas en la compañía — Enric, Anna, Guided Buying Assistant — en aceleradores que los estudios puedan integrar en sus ventas. Y construir nuevos aceleradores validados con el consejo ampliado.</div></div>
           </div>
-          <div class="setup-step">
+          <div class="step">
             <div class="step-num">2</div>
-            <div>
-              <div class="step-content-body">Hay un espacio entre las tendencias del mercado y la capacidad de los estudios — el Studio de Innovación lo ocupa.</div>
-            </div>
+            <div><div class="step-body">Hay un espacio entre las tendencias del mercado y la capacidad de los estudios — WAM Innovation lo ocupa.</div></div>
           </div>
-          <div class="setup-step">
+          <div class="step">
             <div class="step-num">3</div>
-            <div>
-              <div class="step-content-body">Hoy se presenta cómo se construye y por dónde empieza.</div>
-            </div>
+            <div><div class="step-body">Hoy se presenta cómo se construye y por dónde empieza.</div></div>
           </div>
         </div>
       </div>
       <div class="slide-footer" data-a>
-        <div class="slide-num">02 / 16</div>
+        <div class="slide-num">02 / 18</div>
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
 
-    <!-- == SLIDE 03: EL MODELO DE HORAS SE COMPRIME == -->
+    <!-- SLIDE 03 -->
     <div class="slide" id="slide-03">
       <div class="content-top">
-        <div class="section-tag" data-a>El contexto que ya conoces</div>
-        <div class="slide-title" data-a>
-          El modelo de horas se comprime —<br>y nadie en WAM <em>lo ha enfrentado todavía</em>
-        </div>
+        <div class="section-tag" data-a>La nueva consultoría</div>
+        <div class="slide-title" data-a>Más eficientes, <em>menos rentables</em></div>
       </div>
       <div class="content-body">
         <div class="two-col" data-a>
           <div class="col-block">
-            <div class="col-block-title">Lo que está pasando</div>
+            <div class="col-block-title">Por qué el modelo actual deja de funcionar</div>
             <ul>
-              <li>Claude Code y similares están reduciendo el tiempo de desarrollo en un <span style="color:var(--accent);font-weight:500;">40-60%</span></li>
-              <li>Esa eficiencia se la queda el cliente, no el partner</li>
-              <li>Cada hora ganada en productividad es una hora menos facturable</li>
+              <li>La IA reduce el tiempo de desarrollo de forma estructural.</li>
+              <li>Bajo el modelo de cobro por horas, la eficiencia se traslada íntegramente al cliente</li>
+              <li>WAM asume el coste de la transformación (herramientas, tokens, formación)</li>
+              <li><strong style="color:var(--accent);font-weight:500;">Resultado</strong>: menos horas facturadas y más coste operativo</li>
             </ul>
           </div>
           <div class="col-block">
-            <div class="col-block-title">Lo que esto significa para WAM</div>
+            <div class="col-block-title">El cambio estructural</div>
             <ul>
-              <li>Connect, Scale, Grow e Impact dependen de horas facturadas</li>
-              <li>La compresión todavía no es masiva, pero la dirección es estructural</li>
-              <li>En 18 meses, esto va a impactar el P&amp;L de todas las prácticas</li>
+              <li>Cambiar la unidad de valor: cobrar por aceleradores, IP y resultados — no por horas</li>
+              <li>Empaquetar conocimiento en activos reutilizables que protegen margen proyecto a proyecto</li>
+              <li>Posicionar a WAM como el partner que vende impacto medible, no tiempo</li>
             </ul>
           </div>
         </div>
-        <div class="accent-line" data-a>"No es una predicción. Es lo que ya está pasando en nuestros proyectos."</div>
+        <div class="accent-line" data-a>"El mercado dejará de comprar horas. Empezará a comprar valor e impacto."</div>
       </div>
       <div class="slide-footer" data-a>
-        <div class="slide-num">03 / 16</div>
+        <div class="slide-num">03 / 18</div>
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
 
-    <!-- == SLIDE 04: EL HUECO DEL MERCADO == -->
+    <!-- SLIDE 04 -->
     <div class="slide" id="slide-04">
       <div class="content-top">
         <div class="section-tag" data-a>El espacio que ocupamos</div>
@@ -423,702 +795,846 @@
         <div class="cards-3" data-a>
           <div class="card">
             <div class="card-eyebrow">Las tendencias</div>
-            <div class="card-title">Avanzan más rápido que los estudios</div>
-            <div class="card-body">La IA, los nuevos modelos de delivery y las nuevas formas de comprar de los clientes evolucionan a una velocidad que ningún estudio individual puede absorber mientras mantiene el delivery actual.</div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Los estudios</div>
-            <div class="card-title">Están en delivery</div>
-            <div class="card-body">Connect, Scale, Grow e Impact no tienen tiempo ni orden para detectar tendencias, validarlas y construir aceleradores. Su foco es el delivery de proyectos.</div>
+            <div class="card-title">El mercado avanza más rápido de lo que podemos procesar</div>
+            <div class="card-body">La IA, los modelos de delivery y las formas de comprar de los clientes cambian cada trimestre. Estar al corriente de lo que madura, lo que emerge y lo que el mercado empieza a demandar <strong style="color:var(--text);font-weight:500;">exige un radar dedicado</strong> — no atención a ratos.</div>
           </div>
           <div class="card">
             <div class="card-eyebrow">Las cuentas grandes</div>
-            <div class="card-title">Esperan que WAM lidere</div>
-            <div class="card-body">Las cuentas grandes con ambición digital esperan que su partner les hable de lo nuevo. Hoy en WAM no hay nadie con ese rol formalizado.</div>
+            <div class="card-title">Los clientes esperan que WAM lidere</div>
+            <div class="card-body">Las cuentas grandes con ambición digital esperan que su partner les proponga lo nuevo, no que reaccione a lo que piden. Hoy en WAM nadie tiene ese rol formalizado.</div>
+          </div>
+          <div class="card">
+            <div class="card-eyebrow">Los estudios</div>
+            <div class="card-title">Enterrados en delivery</div>
+            <div class="card-body">Connect, Scale, Grow e Impact no pueden ser ese radar: su foco está en el delivery de proyectos. Detectar tendencias, validarlas y construir aceleradores queda siempre en segundo plano.</div>
           </div>
         </div>
-        <div class="accent-line" data-a>"Innovación es el puente entre la tendencia y el estudio. No compite con los estudios — los habilita."</div>
+        <div class="accent-line" data-a>WAM Innovation es ese radar dedicado — y pone a los estudios por delante del mercado y de lo que el cliente aún no sabe pedir.</div>
       </div>
       <div class="slide-footer" data-a>
-        <div class="slide-num">04 / 16</div>
+        <div class="slide-num">04 / 18</div>
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
 
-    <!-- == SLIDE 05: NUESTRA POSICIÓN == -->
+    <!-- SLIDE 05 -->
     <div class="slide" id="slide-05">
+      <div class="content-top">
+        <div class="section-tag" data-a>Cómo lo organizamos</div>
+        <div class="slide-title" data-a>Definimos <em>WAM Innovation</em></div>
+        <div class="slide-subtitle" data-a>El radar de WAM: detectamos lo que viene, lo convertimos en IP y lo llevamos al mercado de la mano de los estudios.</div>
+      </div>
+      <div class="content-body">
+        <div class="cards-3" data-a>
+          <div class="card">
+            <div class="card-eyebrow">Radar</div>
+            <div class="card-title">Vemos lo que viene</div>
+            <div class="card-body">Detectamos las tendencias tecnológicas que vienen y las necesidades que los estudios ya ven en cliente. Vigilancia continua, no a ratos.</div>
+          </div>
+          <div class="card">
+            <div class="card-eyebrow">Aceleradores</div>
+            <div class="card-title">Lo convertimos en IP</div>
+            <div class="card-body">Convertimos lo más puntero en IP propia y reutilizable: activos que reducen el tiempo de entrega y protegen el margen, proyecto a proyecto.</div>
+          </div>
+          <div class="card">
+            <div class="card-eyebrow">Venta</div>
+            <div class="card-title">Lo vendemos con los estudios</div>
+            <div class="card-body">Llevamos esa tecnología al mercado junto a los estudios. La venta la cierra el estudio; Innovación aporta el activo y el criterio.</div>
+          </div>
+        </div>
+        <div class="accent-line" data-a>"No es un lab. Es la capability que mantiene a WAM en la cresta de la ola."</div>
+      </div>
+      <div class="slide-footer" data-a>
+        <div class="slide-num">05 / 18</div>
+        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+      </div>
+    </div>
+
+    <!-- SLIDE 06 -->
+    <div class="slide" id="slide-06">
       <div class="content-top">
         <div class="section-tag" data-a>Nuestra posición</div>
         <div class="slide-title" data-a>
-          WAM ayuda a las grandes cuentas a<br><em>activar innovación con resultados medibles</em><br>— sin transformaciones de 18 meses
+          WAM ayuda a las grandes cuentas a<br>
+          <em>activar innovación con resultados medibles</em><br>— sin transformaciones de 18 meses
         </div>
+        <div class="slide-subtitle" data-a>WAM ocupa ese hueco: el único partner con track record, aceleradores en producción y ecosistema 360</div>
       </div>
       <div class="content-body">
-        <div style="font-size:15px;color:var(--text-muted);line-height:1.6;" data-a>
-          Acelerador cerrado, ROI medible, en ciclos de semanas. No transformación de 18 meses.
-        </div>
         <div class="cards-3" data-a>
           <div class="card">
             <div class="card-eyebrow">1. Track record</div>
             <div class="card-title">Grandes cuentas demostradas</div>
-            <div class="card-body">Mahou, Heineken, Aleph. Track record contrastado en cuentas de este perfil.</div>
+            <div class="card-body">Mahou, Wurth, Aleph, Turisme. Track record contrastado en cuentas de este perfil.</div>
           </div>
           <div class="card">
             <div class="card-eyebrow">2. Aceleradores en producción</div>
             <div class="card-title">No se empieza de cero</div>
-            <div class="card-body">Enric, Anna, Sira, asistente de compras. Los aceleradores existentes se industrializan, no se inventan.</div>
+            <div class="card-body">Enric, Anna, Guided Buying Assistant. Los aceleradores existentes se industrializan, no se inventan.</div>
           </div>
           <div class="card">
             <div class="card-eyebrow">3. Ecosistema 360</div>
             <div class="card-title">Lo que ninguna boutique tiene</div>
-            <div class="card-body">Connect, Scale, Grow e Impact. Ninguna boutique de innovación puede activar el CRM, el commerce o la creatividad. WAM sí.</div>
+            <div class="card-body">Connect, Scale, Grow e Impact. Ninguna boutique de innovación puede activar el CRM, el commerce o la creatividad. WAM si.</div>
           </div>
         </div>
       </div>
       <div class="slide-footer" data-a>
-        <div class="slide-num">05 / 16</div>
+        <div class="slide-num">06 / 18</div>
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
 
-    <!-- == SLIDE 06: CÓMO SE ORGANIZA == -->
-    <div class="slide" id="slide-06">
-      <div class="content-top">
-        <div class="section-tag" data-a>Cómo lo organizamos</div>
-        <div class="slide-title" data-a>Studio de Innovación</div>
-        <div style="font-size:16px;color:var(--text-muted);margin-top:-8px;" data-a>Un área que detecta, construye y habilita a los estudios</div>
-      </div>
-      <div class="content-body">
-        <div class="cards-3" data-a>
-          <div class="card">
-            <div class="card-eyebrow">Diagnóstico</div>
-            <div class="card-title">Acelerador de entrada de 2 semanas</div>
-            <div class="card-body">Habilita conversaciones con cuentas grandes. ROI medible desde el primer entregable. La venta la cierra el estudio correspondiente.</div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Aceleradores</div>
-            <div class="card-title">Componentes reutilizables con precio cerrado</div>
-            <div class="card-body">IP propia que reduce el tiempo de entrega y protege el margen de los estudios proyecto a proyecto.</div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Soluciones ad-hoc</div>
-            <div class="card-title">Transformación profunda con agentes</div>
-            <div class="card-body">Casos complejos que combinan el área de Innovación con la ejecución de los estudios. Ticket alto, margen protegido por la IP construida.</div>
-          </div>
-        </div>
-        <div class="accent-line" data-a>"No es un lab. Es el estudio que habilita a los demás estudios."</div>
-      </div>
-      <div class="slide-footer" data-a>
-        <div class="slide-num">06 / 16</div>
-        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
-      </div>
-    </div>
-
-    <!-- == SLIDE 07: WAM DATA READINESS FOR AI == -->
+    <!-- SLIDE 07 -->
     <div class="slide" id="slide-07">
       <div class="content-top">
-        <div class="section-tag" data-a>El primer acelerador del catálogo</div>
-        <div class="slide-title" data-a>
-          WAM Data Readiness for AI<br>
-          <em style="font-size:0.7em;">15.000 € · 2 semanas · puerta a proyectos derivados</em>
-        </div>
+        <div style="font-family:var(--font-body);font-size:10px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--accent);" data-a>Cómo se mide WAM Innovation</div>
+        <div class="slide-title" data-a>No facturamos. Habilitamos negocio.</div>
+        <div class="slide-subtitle" data-a>Cuatro métricas miden a Innovation por el negocio que mueve en los estudios, no por su propia facturación.</div>
       </div>
-      <div class="content-body">
-        <div class="cards-3" data-a>
-          <div class="card">
-            <div class="card-info-icon">ⓘ</div>
-            <div class="card-eyebrow">Qué incluye</div>
-            <div class="card-title">Diagnóstico completo</div>
-            <div class="card-body">Madurez de datos sobre 5 ejes<br>Mapa de 2-3 quick-wins accionables en menos de 90 días<br>Roadmap de 12 meses para llegar a AI-ready</div>
-            <div class="card-tooltip">
-              <div class="card-tooltip-header">Los 5 ejes del diagnóstico</div>
-              <div class="card-tooltip-item">
-                <div class="card-tooltip-num">1. Calidad del dato</div>
-                <div class="card-tooltip-sub">¿Los datos son fiables, completos y consistentes?</div>
-                <div class="card-tooltip-body">Cubre: duplicados, campos vacíos, inconsistencias entre sistemas, errores estructurales. Es el eje más obvio y el primero que un cliente reconoce como dolor.</div>
-              </div>
-              <div class="card-tooltip-item">
-                <div class="card-tooltip-num">2. Accesibilidad e integración</div>
-                <div class="card-tooltip-sub">¿El dato está donde se necesita, cuando se necesita?</div>
-                <div class="card-tooltip-body">Cubre: silos entre sistemas, integraciones rotas, latencia, capacidad de combinar fuentes. Es el eje que conecta directamente con activar IA: sin integración, no hay caso de uso.</div>
-              </div>
-              <div class="card-tooltip-item">
-                <div class="card-tooltip-num">3. Gobernanza y trazabilidad</div>
-                <div class="card-tooltip-sub">¿Sabemos quién, cuándo y por qué se modifica el dato?</div>
-                <div class="card-tooltip-body">Cubre: ownership, políticas de acceso, versionado, auditoría. Es el eje que un CMO suele tener más débil — y lo sabe.</div>
-              </div>
-              <div class="card-tooltip-item">
-                <div class="card-tooltip-num">4. Cumplimiento normativo</div>
-                <div class="card-tooltip-sub">¿El dato cumple con LOPD, GDPR y normativa sectorial aplicable?</div>
-                <div class="card-tooltip-body">Cubre: consentimiento, retención, derecho al olvido, transferencias internacionales. Es el eje que genera atención inmediata en el cliente y justifica el precio.</div>
-              </div>
-              <div class="card-tooltip-item">
-                <div class="card-tooltip-num">5. Preparación para casos de uso de IA</div>
-                <div class="card-tooltip-sub">¿El dato está estructurado para entrenar modelos o alimentar agentes?</div>
-                <div class="card-tooltip-body">Cubre: etiquetado, contexto, formato, embeddings, prompts. Es el eje específicamente diferenciador del Assessment frente a una auditoría de datos clásica.</div>
-              </div>
+      <div class="content-body" style="gap:14px;">
+        <div class="principle-box" data-a>
+          <div class="principle-label">Principio de medición</div>
+          <div class="principle-text">Innovation no se mide por su propia facturación, sino por su capacidad de habilitar negocio en los estudios. La venta cerrada queda íntegramente en el estudio ejecutor.</div>
+        </div>
+        <div class="cards-4h" data-a>
+          <div class="metric-card">
+            <div class="metric-label">Pipeline influenciado</div>
+            <div class="metric-body">Oportunidades comerciales abiertas en las que Innovation ha participado — con un acelerador, un diagnóstico o un workshop.</div>
+            <div class="metric-targets">
+              <div class="metric-target-row"><span>Target 26</span><span class="metric-value" data-count="750" data-suffix="K€">750 K€</span></div>
+              <div class="metric-target-row"><span>Target 27</span><span style="font-family:var(--font-title);font-style:italic;font-size:20px;color:var(--accent);" data-count="2.5" data-suffix="M€">2,5 M€</span></div>
             </div>
           </div>
-          <div class="card">
-            <div class="card-eyebrow">Para quién</div>
-            <div class="card-title">Cuentas grandes con datos infraexplotados</div>
-            <div class="card-body">Mahou, Heineken, Aleph como hipótesis de cuentas iniciales. La venta la cierra el Account Manager con apoyo técnico del Studio.</div>
+          <div class="metric-card">
+            <div class="metric-label">Ventas influenciadas</div>
+            <div class="metric-body">Contratos cerrados por los estudios que incluyen aceleradores del catálogo de WAM Innovation.</div>
+            <div class="metric-targets">
+              <div class="metric-target-row"><span>Target 26</span><span class="metric-value" data-count="4" data-suffix=" opps">4 opps</span></div>
+              <div class="metric-target-row"><span>Target 27</span><span style="font-family:var(--font-title);font-style:italic;font-size:20px;color:var(--accent);" data-count="16" data-suffix=" opps">16 opps</span></div>
+            </div>
           </div>
-          <div class="card">
-            <div class="card-eyebrow">Por qué este primero</div>
-            <div class="card-title">El dolor real del mercado</div>
-            <div class="card-body">Resuelve el dolor real que las cuentas grandes tienen con sus datos. Nadie lo vende empaquetado con este nivel de concreción. Es la puerta a proyectos derivados de mayor ticket.</div>
+          <div class="metric-card">
+            <div class="metric-label">Negocio habilitado</div>
+            <div class="metric-body">Volumen total de facturación de los estudios atribuible a la influencia de WAM Innovation.</div>
+            <div class="metric-targets">
+              <div class="metric-target-row"><span>Target 26</span><span class="metric-value" data-count="300" data-suffix="K€">300 K€</span></div>
+              <div class="metric-target-row"><span>Target 27</span><span style="font-family:var(--font-title);font-style:italic;font-size:20px;color:var(--accent);" data-count="1" data-suffix="M€">1 M€</span></div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Aceleradores activos</div>
+            <div class="metric-body">Número de aceleradores del catálogo con uso comercial real durante el periodo.</div>
+            <div class="metric-targets">
+              <div class="metric-target-row"><span>Target 26</span><span class="metric-value" data-count="3" data-suffix="">3</span></div>
+              <div class="metric-target-row"><span>Target 27</span><span style="font-family:var(--font-title);font-style:italic;font-size:20px;color:var(--accent);" data-count="7" data-suffix="">7</span></div>
+            </div>
           </div>
         </div>
+        <div class="slide-note" data-a>Se captura en SFDC con la casilla "Innovation Influenced", validada por el VP del estudio al cierre. La influencia suma para los dos — nunca se resta al estudio.</div>
       </div>
       <div class="slide-footer" data-a>
-        <div class="slide-num">07 / 16</div>
+        <div class="slide-num">07 / 18</div>
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
 
-    <!-- == SLIDE 08: CÓMO SE MIDE EL IMPACTO + MODELO DE ATRIBUCIÓN == -->
+    <!-- SLIDE 08 -->
     <div class="slide" id="slide-08">
       <div class="content-top">
-        <div class="section-tag" data-a>Cómo se mide el impacto</div>
-        <div class="slide-title" data-a>
-          Venta <em>influenciada</em>, no facturación directa
-        </div>
-        <div style="font-size:15px;color:var(--text-muted);line-height:1.6;margin-top:-8px;" data-a>
-          El Studio se mide por su capacidad de habilitar negocio en los estudios, no por su propia facturación.
-        </div>
-      </div>
-      <div class="content-body" style="gap:16px;">
-        <div class="cards-4-h" data-a>
-          <div class="card">
-            <div class="card-eyebrow">Pipeline influenciado</div>
-            <div class="card-body">Oportunidades comerciales abiertas en las que el Studio ha participado — con un acelerador, un diagnóstico o un workshop.</div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Ventas influenciadas</div>
-            <div class="card-body">Contratos cerrados por los estudios que incluyen aceleradores del catálogo del Studio.</div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Negocio habilitado</div>
-            <div class="card-body">Volumen total de facturación de los estudios atribuible a la influencia del Studio.</div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Aceleradores activos</div>
-            <div class="card-body">Número de aceleradores del catálogo con uso comercial real durante el periodo.</div>
-          </div>
-        </div>
-        <div class="accent-line" data-a>"La venta cerrada con el apoyo del Studio queda íntegramente en el estudio ejecutor del proyecto."</div>
-      </div>
-      <div class="slide-footer" data-a>
-        <div class="slide-num">08 / 16</div>
-        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
-      </div>
-    </div>
-
-    <!-- == SLIDE 09: EL EQUIPO == -->
-    <div class="slide" id="slide-09">
-      <div class="content-top">
         <div class="section-tag" data-a>Cómo lo hacemos posible</div>
-        <div class="slide-title" data-a>
-          Un equipo <em>deliberadamente lean</em>
-        </div>
+        <div class="slide-title" data-a>Un equipo <em>deliberadamente lean</em></div>
       </div>
-      <div class="content-body" style="gap:16px;">
+      <div class="content-body" style="gap:14px;">
         <div class="col-block" data-a>
           <div class="col-block-title">Núcleo operativo</div>
-          <div class="ue-table-wrap" style="margin-top:12px;">
-            <table class="ue-table">
-              <thead>
-                <tr>
-                  <th style="text-align:left;">Perfil</th>
-                  <th style="text-align:left;">Persona</th>
-                  <th>Dedicación</th>
-                </tr>
-              </thead>
+          <div class="table-wrap" style="margin-top:10px;">
+            <table>
+              <thead><tr><th>Perfil</th><th>Persona</th><th>Dedicación</th></tr></thead>
               <tbody>
-                <tr>
-                  <td>Tecnología</td>
-                  <td style="color:var(--text-muted);">Enric Mora</td>
-                  <td style="color:var(--accent);font-weight:500;">100%</td>
-                </tr>
-                <tr>
-                  <td>Producto Digital</td>
-                  <td style="color:var(--text-muted);">Cristian Sanclemente</td>
-                  <td>30-50%</td>
-                </tr>
-                <tr>
-                  <td>Negocio / Estrategia</td>
-                  <td style="color:var(--text-muted);">Gonzalo Gamboa</td>
-                  <td>30% (lanzamiento)</td>
-                </tr>
+                <tr><td>Tecnología</td><td>Enric Mora</td><td style="color:var(--accent);font-weight:500;">100%</td></tr>
+                <tr><td>Producto Digital</td><td>Cristian Sanclemente</td><td>30-50%</td></tr>
+                <tr><td>Negocio / Estrategia</td><td>Gonzalo Gamboa</td><td>30%</td></tr>
               </tbody>
             </table>
           </div>
-          <div style="font-size:12px;color:var(--text-dim);margin-top:10px;">El perfil de Negocio/Estrategia se estabilizará tras la fase de lanzamiento.</div>
         </div>
         <div class="two-col" data-a>
           <div class="col-block">
-            <div class="col-block-title">Consejo ampliado (bajo demanda)</div>
+            <div class="col-block-title">Consejo ampliado · dedicación parcial</div>
             <ul>
-              <li>VPs y Practice Leads de cada estudio</li>
+              <li><strong>Quienes:</strong> VPs y Practice Leads de cada estudio</li>
               <li>Directores de Cuenta de cuentas estratégicas</li>
-              <li>Personas de negocio (por confirmar)</li>
+              <li><strong>Rol:</strong> Aportan señales de mercado</li>
+              <li>Validan prioridades del catálogo</li>
+              <li>Lideran el GTM hacia los estudios</li>
             </ul>
           </div>
           <div class="col-block">
-            <div class="col-block-title">Funciones del consejo</div>
+            <div class="col-block-title">Estudios · Delivery &amp; Packaging</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:10px;">El núcleo traza las primeras líneas; los estudios ponen la capacidad que construye, paquetiza y entrega los activos.</div>
             <ul>
-              <li>Aportar señales de mercado</li>
-              <li>Validar prioridades del catálogo</li>
-              <li>Liderar el GTM hacia los estudios</li>
-              <li>Se prioriza dedicación parcial sobre incorporación permanente — optimiza inversión y mantiene flexibilidad operativa</li>
+              <li><strong>Anclajes de delivery:</strong></li>
+              <li>Connect / CRM → Gonzalo</li>
+              <li>Scale → Roger</li>
+              <li>Grow e Impact → portavoces por identificar</li>
             </ul>
           </div>
         </div>
-        <div class="accent-line" data-a>"Tres personas que destilan y construyen. Un consejo que aporta señales y prioriza."</div>
+        <div class="accent-line" data-a>"Tres personas destilan. Un consejo prioriza. Los estudios construyen y entregan."</div>
       </div>
       <div class="slide-footer" data-a>
-        <div class="slide-num">09 / 16</div>
+        <div class="slide-num">08 / 18</div>
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
-
-    <!-- == SLIDE 10: GTM == -->
+    <!-- SLIDE 09 -->
+    <div class="slide" id="slide-09">
+      <div class="content-top">
+        <div class="section-tag" data-a>Cómo lo organizamos</div>
+        <div class="slide-title" data-a>No partimos de cero — Assets <em>ya construidos</em> en los estudios</div>
+        <div class="slide-subtitle" data-a>La materia prima del catálogo — Innovación los industrializa y prioriza con el consejo.</div>
+      </div>
+      <div class="content-body">
+        <div class="asset-cols" data-a>
+          <div class="asset-col">
+            <div class="asset-col-label">Scale</div>
+            <div class="asset-col-title">Suite de commerce</div>
+            <ul class="bullet-list">
+              <li><strong>Optimo Assistant</strong>. Recomendador conversacional agnóstico a plataforma</li>
+              <li><strong>Optimo Catalog</strong>. Enriquecimiento de producto desde imagen: una foto popula atributos e información</li>
+              <li><strong>Optimo Connect</strong>. ETL de sincronización de datos entre sistemas</li>
+              <li><strong>Optimo Try-On</strong>. El producto previsualizado en el espacio real del cliente (hogar, moda…)</li>
+              <li><strong>Optimo Orio</strong>. Componentes UI generados, programados y sincronizados solos para Magento, Shopify, etc.</li>
+            </ul>
+          </div>
+          <div class="asset-col">
+            <div class="asset-col-label">Connect</div>
+            <div class="asset-col-title">Agentes CRM y conversacional</div>
+            <ul class="bullet-list">
+              <li><strong>Anna</strong>. Lenguaje natural con interfaces ricas para lo transaccional: formularios extensos, reservas de entradas…</li>
+              <li><strong>Sira &amp; Diana</strong>. Agentes RAG sobre documentación privada, integrados en Slack, Teams y Discord</li>
+              <li><strong>Enric</strong>. Le ponemos cara y voz a la IA: un avatar humano que convierte al agente en alguien con quien hablar, no una caja de texto que leer</li>
+            </ul>
+          </div>
+          <div class="asset-col">
+            <div class="asset-col-label">Cross-Studio</div>
+            <div class="asset-col-title">Data y Agentforce Shopping</div>
+            <ul class="bullet-list">
+              <li><strong>Guided Buying Assistant</strong>. Vendedor inteligente con Agentforce: guía al visitante del descubrimiento al carrito. Acelerador listo en 2 semanas</li>
+              <li><strong>WAM Data Readiness for AI</strong>. Diagnóstico de madurez de datos para IA (5 ejes) en 2 semanas. Puerta de entrada a proyectos derivados</li>
+            </ul>
+          </div>
+        </div>
+        <div class="accent-line" data-a>"No inventamos desde cero. Industrializamos lo que ya funciona."</div>
+      </div>
+      <div class="slide-footer" data-a>
+        <div class="slide-num">09 / 18</div>
+        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+      </div>
+    </div>
+    <!-- SLIDE 10 -->
     <div class="slide" id="slide-10">
       <div class="content-top">
-        <div class="section-tag" data-a>Cómo lo contamos al mercado</div>
-        <div class="slide-title" data-a>
-          El GTM ocurre <em>a través de los estudios</em>
-        </div>
-        <div style="font-size:15px;color:var(--text-muted);line-height:1.6;margin-top:-8px;" data-a>
-          El Studio no vende al cliente final. Habilita a los Account Managers y a los estudios a vender mejor.
-        </div>
-      </div>
-      <div class="content-body">
-        <div class="cards-3" data-a>
-          <div class="card">
-            <div class="card-eyebrow">Cómo llega al cliente</div>
-            <div class="card-body">Los Account Managers detectan necesidad → activan el acelerador adecuado del catálogo → el Studio soporta técnicamente → el estudio correspondiente cierra la venta.</div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Soporte de Marketing</div>
-            <div class="card-body">Materiales internos para que los estudios conozcan el catálogo. Materiales externos puntuales para posicionar a WAM como referente. El nombre definitivo del Studio lo decide Marketing.</div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Narrativa hacia el cliente</div>
-            <div class="card-body">WAM no os trae IA. Os trae los resultados que la IA puede dar a vuestro negocio — paquetizados, medidos y entregables en semanas.</div>
-          </div>
-        </div>
-        <div class="accent-line" data-a>"La narrativa — y el nombre del Studio — los lidera Marketing."</div>
-      </div>
-      <div class="slide-footer" data-a>
-        <div class="slide-num">10 / 16</div>
-        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
-      </div>
-    </div>
-
-    <!-- == SLIDE 11: LAS LITURGIAS DEL STUDIO == -->
-    <div class="slide" id="slide-11">
-      <div class="content-top">
-        <div class="section-tag" data-a>Cómo se conecta el Studio con el resto de WAM</div>
-        <div class="slide-title" data-a>
-          Las <em>liturgias</em> del Studio — entradas, procesamiento y salidas
-        </div>
-        <div style="font-size:15px;color:var(--text-muted);line-height:1.6;margin-top:-8px;" data-a>
-          El Studio es un nodo de un sistema. Su valor está en las conexiones con los estudios, los Account Managers y el cliente.
-        </div>
-      </div>
-      <div class="content-body">
-        <div class="cards-3" data-a>
-          <div class="card">
-            <div class="card-eyebrow">Entrada</div>
-            <div class="card-title">Cómo llegan las demandas</div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Radar propio del Studio (tendencias técnicas y de mercado)</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Demandas de VPs y Practice Leads (desde delivery)</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Demandas de Directores de Cuenta (desde cliente)</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Procesamiento</div>
-            <div class="card-title">Cómo se construye</div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Destilación y priorización trimestral con el consejo ampliado</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Construcción del acelerador con el núcleo operativo</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Validación con cliente piloto identificado por un estudio</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Salida</div>
-            <div class="card-title">Cómo vuelve al negocio</div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Empaquetado del acelerador como activo del catálogo</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Habilitación a Account Managers y Practice Leads</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;padding-left:14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Venta cerrada por el estudio, métrica de influencia atribuida al Studio</div>
-            </div>
-          </div>
-        </div>
-        <div class="accent-line" data-a>"El Studio no actúa solo. La fuerza está en las conexiones."</div>
-      </div>
-      <div class="slide-footer" data-a>
-        <div class="slide-num">11 / 16</div>
-        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
-      </div>
-    </div>
-
-    <!-- == SLIDE 12: PLAN 90 DÍAS == -->
-    <div class="slide" id="slide-12">
-      <div class="content-top">
-        <div class="section-tag" data-a>Cómo lo gobernamos</div>
-        <div class="slide-title" style="font-size:clamp(28px,3.5vw,44px);" data-a>
-          Plan 90 días — <em>junio para lanzar, julio para construir, otoño para validar</em>
-        </div>
-      </div>
-      <div class="content-body" style="justify-content:flex-start;">
-        <div class="cards-4" data-a>
-          <div class="card">
-            <div class="card-eyebrow">Fase 1 — Junio</div>
-            <div class="card-title">Lanzamiento</div>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Kickoff con dirección general</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Diseño operativo y modelo de relación con los estudios</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Análisis de costes</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Inventario de activos reutilizables</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Definición del plan de Marketing</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Fase 2 — Julio</div>
-            <div class="card-title">Construcción</div>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Run del modelo operativo, primeras conclusiones</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Asistente de venta</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Data Readiness for AI</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Agentes Customer Service</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Identificación de pipeline en cuentas existentes</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Fase 3 — Agosto</div>
-            <div class="card-title">Mes inhábil</div>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Refinamiento del catálogo</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Depuración de entregables</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-eyebrow">Fase 4 — Sep–Dic</div>
-            <div class="card-title">Validación</div>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Primeras ventas influenciadas</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>BAU de toda la operativa</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Iteración de aceleradores con datos reales</div>
-              <div style="font-size:13px;color:var(--text-muted);line-height:1.4;padding-left:12px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">–</span>Revisión integral en diciembre y roadmap 2027</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="slide-footer" data-a>
-        <div class="slide-num">12 / 16</div>
-        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
-      </div>
-    </div>
-
-    <!-- == SLIDE 13: RIESGOS == -->
-    <div class="slide" id="slide-13">
-      <div class="content-top">
-        <div class="section-tag" data-a>Lo que se debe evitar</div>
-        <div class="slide-title" data-a>
-          Cinco riesgos identificados — <em>y cómo se mitigan</em>
-        </div>
-        <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-top:-8px;" data-a>
-          El Studio nace consciente de los modos de fallo. Cada riesgo tiene un mecanismo de mitigación definido desde el día uno.
-        </div>
+        <div class="section-tag" data-a>Cómo opera Innovation con los estudios</div>
+        <div class="slide-title" style="font-size:clamp(28px,3.2vw,44px);" data-a>Un flujo simple, con un owner en cada paso.</div>
+        <div class="slide-subtitle" data-a>Dos vías de trabajo sobre el mismo flujo: construir el catálogo (hacia dentro) y activarlo en cliente (hacia fuera).</div>
       </div>
       <div class="content-body" style="gap:12px;">
-        <div class="col-block" data-a>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;">
+        <div class="flow-steps" data-a>
+          <div class="flow-step">
+            <div class="flow-step-num">1</div>
+            <div class="flow-step-label">Señal</div>
+            <div class="flow-step-body">Radar propio, estudios y Account Managers detectan una oportunidad o tendencia.</div>
+            <div class="flow-step-owner">Owner <span>Enric</span></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">2</div>
+            <div class="flow-step-label">Criba</div>
+            <div class="flow-step-body">¿Hay pain real, encaje con un estudio y cliente piloto? Se prioriza con scoring.</div>
+            <div class="flow-step-owner">Owner <span>Gonzalo</span></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">3</div>
+            <div class="flow-step-label">Construye</div>
+            <div class="flow-step-body">Se paquetiza el acelerador con músculo de estudio comprado por horas.</div>
+            <div class="flow-step-owner">Owner <span>Enric &amp; Cristian</span></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">4</div>
+            <div class="flow-step-label">Valida</div>
+            <div class="flow-step-body">Piloto con cliente real antes de entrar al catálogo.</div>
+            <div class="flow-step-owner">Owner <span>Consejo</span></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">5</div>
+            <div class="flow-step-label">Activa</div>
+            <div class="flow-step-body">Enablement a AMs → el estudio cierra → se marca la influencia.</div>
+            <div class="flow-step-owner">Owner <span>AM &amp; VP estudio</span></div>
+          </div>
+        </div>
+        <div class="flow-bottom" data-a>
+          <div class="flow-bottom-card">
+            <div class="flow-bottom-label">Hacia dentro: construir catálogo</div>
+            <div class="flow-bottom-body">Pasos 1→4. Convertimos IP existente (Enric, Anna, GBA) y nuevas ideas en aceleradores. Disparador: una tendencia de radar. Nosotros vemos la oportunidad antes que el cliente pero debemos salir a buscar un piloto: sin cliente comprometido, no se debería construir (en principio).</div>
+          </div>
+          <div class="flow-bottom-card">
+            <div class="flow-bottom-label">Hacia fuera: activar en cliente</div>
+            <div class="flow-bottom-body">Pasos 1→5. El acelerador del catálogo (o un diagnóstico Data Readiness) abre la conversación. Disparador: AM o cliente piden solución. La venta y la ejecución quedan en el estudio; Innovation aporta activo y criterio.</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer" data-a>
+        <div class="slide-num">10 / 18</div>
+        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+      </div>
+    </div>
 
-            <!-- Cabeceras de columna -->
-            <div style="padding:0 0 8px 0;border-bottom:1px solid rgba(255,255,255,0.12);">
-              <div style="font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);">Riesgo</div>
-            </div>
-            <div style="padding:0 0 8px 0;border-bottom:1px solid rgba(255,255,255,0.12);">
-              <div style="font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);">Mitigación</div>
-            </div>
+    <!-- SLIDE 11 -->
+    <div class="slide" id="slide-11">
+      <div class="content-top" style="margin-bottom:12px;">
+        <div class="section-tag" data-a>Capacidad finita, reglas claras</div>
+        <div class="slide-title" style="font-size:clamp(24px,3vw,40px);" data-a>Quién decide, quién construye, quién cobra.</div>
+        <div class="slide-subtitle" data-a>El core no desarrolla solo: compra horas a los estudios contra un presupuesto. Así no hay "magic time" ni tiempo prestado.</div>
+      </div>
+      <div class="raci-layout" data-a>
+        <div class="raci-panel">
+          <div class="raci-table-wrap">
+            <table class="raci-table">
+              <thead>
+                <tr>
+                  <th>Fase</th>
+                  <th>Innovation</th>
+                  <th>Estudio / VP</th>
+                  <th>Account Mgr</th>
+                  <th>Dirección</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Detectar señal</td><td><span class="badge badge-ra">R/A</span></td><td><span class="badge badge-c">C</span></td><td><span class="badge badge-c">C</span></td><td><span class="badge badge-i">I</span></td></tr>
+                <tr><td>Cribar y priorizar</td><td><span class="badge badge-r">R</span></td><td><span class="badge badge-a">A</span></td><td><span class="badge badge-c">C</span></td><td><span class="badge badge-i">I</span></td></tr>
+                <tr><td>Construir acelerador</td><td><span class="badge badge-ra">R/A</span></td><td><span class="badge badge-c">C</span></td><td><span class="badge badge-i">I</span></td><td><span class="badge badge-i">I</span></td></tr>
+                <tr><td>Validar con piloto</td><td><span class="badge badge-r">R</span></td><td><span class="badge badge-c">C</span></td><td><span class="badge badge-a">A</span></td><td><span class="badge badge-i">I</span></td></tr>
+                <tr><td>Cerrar y ejecutar venta</td><td><span class="badge badge-c">C</span></td><td><span class="badge badge-r">R</span></td><td><span class="badge badge-a">A</span></td><td><span class="badge badge-i">I</span></td></tr>
+                <tr><td>Atribuir influencia</td><td><span class="badge badge-r">R</span></td><td><span class="badge badge-a">A</span></td><td><span class="badge badge-c">C</span></td><td><span class="badge badge-i">I</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="raci-legend">R Responsable &nbsp;·&nbsp; A Aprueba &nbsp;·&nbsp; C Consultado &nbsp;·&nbsp; I Informado</div>
+        </div>
+        <div class="raci-side">
+          <div class="raci-side-card">
+            <div class="raci-side-label">Cómo construimos sin magic time</div>
+            <div class="raci-side-body">Presupuesto transversal en horas de estudio (p. ej. 250 h Connect, 150 h Scale). Se compra desarrollo contra ese presupuesto; el dev imputa a un código real y su VP lo ve.</div>
+          </div>
+          <div class="raci-side-card">
+            <div class="raci-side-label">Cómo priorizamos (capacidad limitada)</div>
+            <div class="raci-side-body">Scoring en el comité de demanda: tamaño del pain × nº de cuentas · reutilización entre estudios · piloto comprometido. Sin piloto, no se construye.</div>
+          </div>
+          <div class="raci-side-card">
+            <div class="raci-side-label">Cómo atribuimos la venta</div>
+            <div class="raci-side-body">Cuenta como influida si usa acelerador, diagnóstico o workshop de Innovation. El VP valida al cierre. El € suma para estudio (P&amp;L) e Innovation (influencia).</div>
+          </div>
+          <div class="raci-liturgias">
+            <div class="raci-liturgias-label">Liturgias</div>
+            <ol>
+              <li>Comité de demanda (mensual)</li>
+              <li>Review de pipeline (mensual)</li>
+              <li>Revisión de catálogo (trimestral)</li>
+              <li>Enablement comercial (al lanzar acelerador)</li>
+              <li>Retrospective de oportunidades (trimestral)</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer" style="margin-top:10px;" data-a>
+        <div class="slide-num">11 / 18</div>
+        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+      </div>
+    </div>
 
-            <div style="padding:10px 0;border-bottom:1px solid var(--surface-border);">
-              <div style="font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:5px;">Convertirse en un Lab</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">Equipo aislado que hace cosas interesantes pero que nadie vende y termina siendo centro de coste.</div>
+    <!-- SLIDE 12 -->
+    <div class="slide" id="slide-12">
+      <div class="content-top">
+        <div class="section-tag" data-a>Las liturgias · Cómo se sostiene el modelo</div>
+        <div class="slide-title" style="font-size:clamp(24px,3vw,42px);" data-a>Cinco reuniones fijas. Cero dependencia de la buena voluntad.</div>
+        <div class="slide-subtitle" data-a>Cada liturgia tiene una cadencia, unos asistentes y una decisión que produce. Sin ellas, Innovation se aísla.</div>
+      </div>
+      <div class="content-body" style="gap:10px;">
+        <div class="liturgias-table-wrap" data-a>
+          <table class="liturgias-table">
+            <thead>
+              <tr>
+                <th>Liturgia</th>
+                <th>Cadencia</th>
+                <th>Quién</th>
+                <th>Para qué</th>
+                <th>Qué decisión produce</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Comité de demanda</td>
+                <td class="cadencia">Mensual (45 min)</td>
+                <td>Core + VPs / Practice Leads</td>
+                <td>Revisar señales nuevas y decidir qué entra en cola priorizada (Fase 1→2).</td>
+                <td>Qué se construye y qué se aparca</td>
+              </tr>
+              <tr>
+                <td>Review de pipeline</td>
+                <td class="cadencia">Mensual</td>
+                <td>Core + Account Managers</td>
+                <td>Mirar oportunidades influidas abiertas y empujar las que se atascan (Fase 5).</td>
+                <td>Acciones para mover el pipeline</td>
+              </tr>
+              <tr>
+                <td>Revisión de catálogo</td>
+                <td class="cadencia">Trimestral</td>
+                <td>Core + Consejo ampliado</td>
+                <td>Validar qué aceleradores entran, cuáles se iteran y cuáles se pausan (Fase 4).</td>
+                <td>Estado real del catálogo</td>
+              </tr>
+              <tr>
+                <td>Enablement comercial</td>
+                <td class="cadencia">Al lanzar acelerador</td>
+                <td>Core + AMs del estudio</td>
+                <td>Formar a los AMs para que sepan venderlo y abrir conversación (Fase 5).</td>
+                <td>AMs capaces de vender el activo</td>
+              </tr>
+              <tr>
+                <td>Retrospective de opps</td>
+                <td class="cadencia">Trimestral</td>
+                <td>Core + VP del estudio</td>
+                <td>Analizar por qué se perdió una oportunidad influida y qué corregir.</td>
+                <td>Aprendizaje para el catálogo</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="liturgias-note" data-a>La cadencia mensual mantiene el flujo vivo; la trimestral protege la calidad del catálogo. Todas reportan a la revisión integral con Dirección en diciembre.</div>
+      </div>
+      <div class="slide-footer" data-a>
+        <div class="slide-num">12 / 18</div>
+        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+      </div>
+    </div>
+    <!-- SLIDE 13 -->
+    <div class="slide" id="slide-13">
+      <div class="content-top">
+        <div class="section-tag" data-a>Cómo lo llevamos al mercado</div>
+        <div class="slide-title" data-a>El go-to-market es <em>de todos</em>.</div>
+        <div class="slide-subtitle" data-a>Innovation no vende al cliente final. Cada rol entra en un punto del mismo recorrido y la huella se mide en SF.</div>
+      </div>
+      <div class="content-body" style="gap:12px;padding-top:18px;">
+        <div class="gtm-layout" data-a>
+          <div class="gtm-flow-wrapper">
+            <div class="gtm-nodes" id="gtm-top-nodes">
+              <div class="gtm-node-top"><div class="gtm-node-top-label">Señal</div><div class="gtm-node-top-sub">Detectar la oportunidad</div></div>
+              <div class="gtm-node-top"><div class="gtm-node-top-label">Activa</div><div class="gtm-node-top-sub">Abrir la conversación</div></div>
+              <div class="gtm-node-top"><div class="gtm-node-top-label">Soporta</div><div class="gtm-node-top-sub">Construir la propuesta</div></div>
+              <div class="gtm-node-top"><div class="gtm-node-top-label">Cierra</div><div class="gtm-node-top-sub">Vender y ejecutar</div></div>
+              <div class="gtm-node-top"><div class="gtm-node-top-label">Mide</div><div class="gtm-node-top-sub">Medimos impacto</div></div>
             </div>
-            <div style="padding:10px 0;border-bottom:1px solid var(--surface-border);">
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">Medición exclusiva por venta influenciada y conexión obligatoria con los estudios a través del consejo ampliado.</div>
+            <div class="gtm-connector-row">
+              <svg class="gtm-connector-svg" id="gtm-svg" viewBox="0 0 1000 24" preserveAspectRatio="none">
+                <path id="gtm-line" d="M 50,12 L 950,12"
+                  stroke="#FF7EFF" stroke-width="1.5" fill="none" opacity="0.5"
+                  stroke-dasharray="900" stroke-dashoffset="900"/>
+                <line x1="100" y1="1" x2="100" y2="23" stroke="#FF7EFF" stroke-width="1" opacity="0.3"/>
+                <line x1="300" y1="1" x2="300" y2="23" stroke="#FF7EFF" stroke-width="1" opacity="0.3"/>
+                <line x1="500" y1="1" x2="500" y2="23" stroke="#FF7EFF" stroke-width="1" opacity="0.3"/>
+                <line x1="700" y1="1" x2="700" y2="23" stroke="#FF7EFF" stroke-width="1" opacity="0.3"/>
+                <line x1="900" y1="1" x2="900" y2="23" stroke="#FF7EFF" stroke-width="1" opacity="0.3"/>
+              </svg>
             </div>
+            <div class="gtm-nodes-bottom">
+              <div class="gtm-node-bottom"><div class="gtm-node-bottom-owner">Radar de Innovation</div><div class="gtm-node-bottom-sub">+ señales de los estudios</div></div>
+              <div class="gtm-node-bottom"><div class="gtm-node-bottom-owner">Equipo GTM &amp; DC</div><div class="gtm-node-bottom-sub">genera demanda y campaña</div></div>
+              <div class="gtm-node-bottom"><div class="gtm-node-bottom-owner">Innovation</div><div class="gtm-node-bottom-sub">soporte técnico, criterio, valida BC</div></div>
+              <div class="gtm-node-bottom"><div class="gtm-node-bottom-owner">DC + Estudio</div><div class="gtm-node-bottom-sub">relación de cuenta y delivery</div></div>
+              <div class="gtm-node-bottom"><div class="gtm-node-bottom-owner">SFDC</div><div class="gtm-node-bottom-sub">casilla validada por el VP</div></div>
+            </div>
+          </div>
+          <div class="gtm-bottom-cards">
+            <div class="gtm-bottom-card">
+              <div class="gtm-bottom-label">Marketing envuelve todo el recorrido</div>
+              <div class="gtm-bottom-body">Lidera la narrativa y el nombre de la capability. Materiales internos para los estudios y externos para posicionar a WAM como referente.</div>
+            </div>
+            <div class="gtm-bottom-card">
+              <div class="gtm-bottom-label">Incentivo al frente comercial</div>
+              <div class="gtm-bottom-body">GTM debe tener incentivo para las oportunidades de innovación: pesan más en su variable. El factor exacto se cerrará más adelante (jun/jul).</div>
+            </div>
+          </div>
+          <div class="gtm-key" data-a><strong>Idea clave:</strong> WAM no provée IA. Genera resultados que la IA construye en negocio: paquetizados, medidos y entregables en semanas.</div>
+        </div>
+      </div>
+      <div class="slide-footer" data-a>
+        <div class="slide-num">13 / 18</div>
+        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+      </div>
+    </div>
 
-            <div style="padding:10px 0;border-bottom:1px solid var(--surface-border);">
-              <div style="font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:5px;">Iniciativa percibida como exclusiva de un estudio</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">Pérdida de transversalidad si el Studio se asocia a una sola práctica.</div>
-            </div>
-            <div style="padding:10px 0;border-bottom:1px solid var(--surface-border);">
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">Consejo ampliado con VPs de todas las prácticas y comunicación explícita de transversalidad desde el kickoff.</div>
-            </div>
+    <!-- SLIDE 14 -->
+    <div class="slide" id="slide-14">
+      <div class="content-top">
+        <div class="section-tag" data-a>Lo que se debe evitar</div>
+        <div class="slide-title" data-a>Cinco riesgos identificados — <em>y cómo se mitigan</em></div>
+        <div class="slide-subtitle" data-a>WAM Innovation nace consciente de los modos de fallo. Cada riesgo tiene un mecanismo de mitigación definido desde el día uno.</div>
+      </div>
+      <div class="content-body" style="gap:10px;">
+        <div class="risks-wrap" data-a>
+          <div style="display:grid;grid-template-columns:1fr 1fr;">
+            <div class="risk-header">Riesgo</div>
+            <div class="risk-header">Mitigación</div>
+          </div>
+          <div class="risks-grid">
+            <div class="risk-row-risk"><div class="risk-label">Convertirse en un lab</div><div class="risk-body">Equipo aislado que hace activos interesantes pero que nadie vende y termina siendo centro de coste.</div></div>
+            <div class="risk-row-mit"><div class="mit-body">Medición exclusiva por venta influenciada y conexión obligatoria con los estudios a través del consejo ampliado y de las litúrgicas definidas.</div></div>
 
-            <div style="padding:10px 0;border-bottom:1px solid var(--surface-border);">
-              <div style="font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:5px;">Construir aceleradores que nadie compra</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">Innovación tecnológica desconectada del pragmatismo del negocio.</div>
-            </div>
-            <div style="padding:10px 0;border-bottom:1px solid var(--surface-border);">
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">Cada acelerador requiere validación con cliente piloto identificado por un Account Manager antes de entrar al catálogo.</div>
-            </div>
+            <div class="risk-row-risk"><div class="risk-label">Iniciativa percibida como exclusiva de un estudio</div><div class="risk-body">Pérdida de transversalidad si WAM Innovation se asocia a una solo estudio.</div></div>
+            <div class="risk-row-mit"><div class="mit-body">Consejo ampliado con VPs de todas las prácticas y comunicación explícita de transversalidad desde el kickoff.</div></div>
 
-            <div style="padding:10px 0;border-bottom:1px solid var(--surface-border);">
-              <div style="font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:5px;">Competir con los estudios</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">El Studio absorbe ventas que deberían capitalizar las prácticas.</div>
-            </div>
-            <div style="padding:10px 0;border-bottom:1px solid var(--surface-border);">
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">Principio rector de venta atribuida íntegramente al estudio que la cierra, sin facturación propia del Studio.</div>
-            </div>
+            <div class="risk-row-risk"><div class="risk-label">Construir aceleradores que nadie compra</div><div class="risk-body">Innovación tecnológica desconectada del pragmatismo del negocio.</div></div>
+            <div class="risk-row-mit"><div class="mit-body">Cada acelerador requiere validación con cliente piloto identificado por un Account Manager antes de entrar al catálogo.</div></div>
 
-            <div style="padding:10px 0;">
-              <div style="font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:5px;">Operativa difusa</div>
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">Falta de claridad sobre relaciones, liturgias y procesos.</div>
-            </div>
-            <div style="padding:10px 0;">
-              <div style="font-size:14px;color:var(--text-muted);line-height:1.5;">Diseño operativo formalizado en la slide de liturgias y revisión trimestral del modelo con Dirección General.</div>
-            </div>
+            <div class="risk-row-risk"><div class="risk-label">Cada estudio, su propia innovación</div><div class="risk-body">Los estudios impulsan su propia innovación en paralelo. Se duplica el esfuerzo, se fragmenta el catálogo y se diluye la capability transversal</div></div>
+            <div class="risk-row-mit"><div class="mit-body">Carriles claros de propiedad: Innovación posee el radar, la priorización y la IP transversal; los estudios, el delivery y la venta.</div></div>
 
+            <div class="risk-row-risk" style="border-bottom:none;"><div class="risk-label">Operativa difusa</div><div class="risk-body">Falta de claridad sobre relaciones, liturgias y procesos.</div></div>
+            <div class="risk-row-mit" style="border-bottom:none;"><div class="mit-body">Diseño operativo formalizado en la slide de liturgias y revisión trimestral con Dirección General.</div></div>
           </div>
         </div>
         <div class="accent-line" data-a>"Los riesgos no se eliminan — se gestionan. La slide existe para que el sistema sepa qué evitar."</div>
       </div>
       <div class="slide-footer" data-a>
-        <div class="slide-num">13 / 16</div>
+        <div class="slide-num">14 / 18</div>
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
 
-    <!-- == SLIDE 14: PRESUPUESTO == -->
-    <div class="slide" id="slide-14">
+    <!-- SLIDE 15 -->
+    <div class="slide" id="slide-15">
       <div class="content-top">
         <div class="section-tag" data-a>La inversión</div>
-        <div class="slide-title" data-a>
-          200 K€ — <em>orientados a habilitar pipeline</em>
+        <div class="slide-title" data-a>300 K€ — <em>orientados a habilitar pipeline</em></div>
+        <div class="slide-subtitle" data-a>Presupuesto aprobado para el año. La mayoría va al equipo — el activo que genera el valor.</div>
+      </div>
+      <div class="content-body">
+        <div class="cards-4" data-a>
+          <div class="card">
+            <div class="card-eyebrow">Salarios equipo core · 44%</div>
+            <span class="budget-num" data-count="133" data-suffix=" K€">133 K€</span>
+            <div class="card-body">Tres perfiles dedicados hasta fin de año: tecnología, producto digital y negocio/estrategia.</div>
+          </div>
+          <div class="card">
+            <div class="card-eyebrow">Advisory &amp; Tech · 20%</div>
+            <span class="budget-num" data-count="60" data-suffix=" K€">60 K€</span>
+            <div class="card-body">Insights de practice leads, account managers y otros key stakeholders para capturar tendencias de mercado. Músculo para el desarrollo de soluciones y catálogo.</div>
+          </div>
+          <div class="card">
+            <div class="card-eyebrow">Gastos incurridos · 32%</div>
+            <span class="budget-num" data-count="97" data-suffix=" K€">97 K€</span>
+            <div class="card-body">Horas ya destinadas al desarrollo de catálogo de IP en diferentes estudios</div>
+          </div>
+          <div class="card">
+            <div class="card-eyebrow">Habilitación comercial · 3%</div>
+            <span class="budget-num" data-count="10" data-suffix=" K€">10 K€</span>
+            <div class="card-body">Eventos sectoriales y materiales externos puntuales. La narrativa GTM se construye con el equipo de Marketing interno.</div>
+          </div>
         </div>
-        <div style="font-size:15px;color:var(--text-muted);line-height:1.6;margin-top:-8px;" data-a>
-          Presupuesto aprobado para el resto del año. El 77% va al equipo — el activo que genera el valor.
+        <div class="accent-line" data-a>"El activo de Innovation es el equipo. Todo lo demás es soporte para que ese equipo destile y construya con criterio."</div>
+      </div>
+      <div class="slide-footer" data-a>
+        <div class="slide-num">15 / 18</div>
+        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 -->
+    <div class="slide" id="slide-16">
+      <div class="content-top">
+        <div class="section-tag" data-a>Cómo lo gobernamos</div>
+        <div class="slide-title" style="font-size:clamp(22px,2.8vw,38px);" data-a>
+          Plan 90 días — <em>junio para lanzar, julio para construir, otoño para validar</em>
         </div>
       </div>
       <div class="content-body">
         <div class="cards-4" data-a>
           <div class="card">
-            <div class="card-eyebrow">Salarios Equipo Core · 77%</div>
-            <div class="card-title" style="font-size:22px;color:var(--accent);">154 K€</div>
-            <div class="card-body">Tres perfiles dedicados hasta fin de año: tecnología, producto digital y negocio/estrategia.</div>
+            <div class="card-eyebrow">Fase 1 — Junio</div>
+            <div class="card-title">Lanzamiento</div>
+            <ul class="bullet-list" style="margin-top:8px;">
+              <li>Kickoff con dirección general</li>
+              <li>Diseño operativo y modelo de relación con los estudios</li>
+              <li>Análisis detallado de costes</li>
+              <li>Inventario de activos reutilizables</li>
+              <li>Definición del plan de Marketing</li>
+            </ul>
           </div>
           <div class="card">
-            <div class="card-eyebrow">Tech &amp; Enablement · 13%</div>
-            <div class="card-title" style="font-size:22px;color:var(--accent);">26 K€</div>
-            <div class="card-body">Formación específica en IA, herramientas, licencias y certificaciones del equipo dedicado.</div>
+            <div class="card-eyebrow">Fase 2 — Julio</div>
+            <div class="card-title">Ramp-up</div>
+            <ul class="bullet-list" style="margin-top:8px;">
+              <li>Run del modelo operativo, primeras conclusiones</li>
+              <li>Primeros activos priorizados y desarrollo planificado.</li>
+              <li>Identificación de pipeline en cuentas existentes</li>
+            </ul>
           </div>
           <div class="card">
-            <div class="card-eyebrow">Fondo Pilotos · 7%</div>
-            <div class="card-title" style="font-size:22px;color:var(--accent);">14 K€</div>
-            <div class="card-body">Descuentos comerciales puntuales en los primeros clientes estratégicos para asegurar caso de éxito inicial.</div>
+            <div class="card-eyebrow">Fase 3 — Agosto</div>
+            <div class="card-title">Mes inhábil</div>
+            <ul class="bullet-list" style="margin-top:8px;">
+              <li>Refinamiento del catálogo</li>
+              <li>Depuración de entregables</li>
+            </ul>
           </div>
           <div class="card">
-            <div class="card-eyebrow">Habilitación Comercial · 3%</div>
-            <div class="card-title" style="font-size:22px;color:var(--accent);">6 K€</div>
-            <div class="card-body">Eventos sectoriales y materiales externos puntuales. La narrativa GTM se construye con el equipo de Marketing interno.</div>
+            <div class="card-eyebrow">Fase 4 — Sep–Dic</div>
+            <div class="card-title">Validación</div>
+            <ul class="bullet-list" style="margin-top:8px;">
+              <li>Primeras ventas influenciadas</li>
+              <li>BAU de toda la operativa</li>
+              <li>Iteración de aceleradores con datos reales</li>
+              <li>Revisión integral en diciembre y roadmap 2027</li>
+            </ul>
           </div>
         </div>
-        <div class="accent-line" data-a>"El activo del Studio es el equipo. Todo lo demás es soporte para que ese equipo destile y construya con criterio."</div>
       </div>
       <div class="slide-footer" data-a>
-        <div class="slide-num">14 / 16</div>
+        <div class="slide-num">16 / 18</div>
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
 
-    <!-- == SLIDE 15: PRÓXIMOS PASOS == -->
-    <div class="slide" id="slide-15">
+    <!-- SLIDE 17 -->
+    <div class="slide" id="slide-17">
       <div class="content-top">
         <div class="section-tag" data-a>El cierre</div>
         <div class="slide-title" data-a>Próximos pasos — <em>qué se activa esta semana</em></div>
       </div>
-      <div class="content-body" style="gap:16px;">
-        <div class="setup-steps" data-a>
-          <div class="setup-step">
+      <div class="content-body">
+        <div class="steps" data-a>
+          <div class="step">
             <div class="step-num">1</div>
             <div>
-              <div class="step-content-title">Kickoff con Dirección General</div>
-              <div class="step-content-body">Arranque formal del Studio con presencia del Director General. Diseño operativo en marcha.</div>
+              <div class="step-title">Kickoff de WAM Innovation</div>
+              <div class="step-body">Arranque formal de WAM Innovation con presencia del Director General y CEO. Diseño operativo en marcha.</div>
             </div>
           </div>
-          <div class="setup-step">
+          <div class="step">
             <div class="step-num">2</div>
             <div>
-              <div class="step-content-title">Conversación con Marketing</div>
-              <div class="step-content-body">Cierre del nombre definitivo y diseño de la narrativa interna y externa antes del All Hands del 20 de junio.</div>
+              <div class="step-title">Planificación con Corporate Marketing</div>
+              <div class="step-body">Cierre del nombre definitivo y diseño de la narrativa interna y externa antes del All Hands del 20 de junio.</div>
             </div>
           </div>
-          <div class="setup-step">
+          <div class="step">
             <div class="step-num">3</div>
             <div>
-              <div class="step-content-title">Modelo de atribución</div>
-              <div class="step-content-body">Definición del modelo de atribución para que las métricas de venta influenciada tengan reglas claras desde el día uno.</div>
+              <div class="step-title">Consolidación de la gobernanza</div>
+              <div class="step-body">Refinamiento del modelo de gobernanza de Innovación y establecimiento de canales de comunicación.</div>
             </div>
           </div>
         </div>
         <div class="accent-line" data-a>"Si en mes 12 la venta influenciada no sostiene la tesis, se ajusta sin drama."</div>
       </div>
       <div class="slide-footer" data-a>
-        <div class="slide-num">15 / 16</div>
+        <div class="slide-num">17 / 18</div>
         <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
       </div>
     </div>
 
-    <!-- == SLIDE 16: CLOSING == -->
-    <div class="slide" id="slide-16">
-      <div class="cierre-glow"></div>
-
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;">
-        <div class="section-tag" style="justify-content:center;" data-a>—</div>
-        <div class="cierre-quote" data-a>WAM no se adapta al futuro. Lo construye.</div>
-        <div style="font-size:12px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;" data-a>WAM Studio de Innovación · Estrategia 2026</div>
-      </div>
-
-      <div class="cierre-wam" data-a>
-        <svg style="height:22px;width:auto;display:block;" viewBox="0 0 616.94 183.34" xmlns="http://www.w3.org/2000/svg">
-          <path d="M248.48,183.34L292.23,0h64.96l43.75,183.34h-36.15l-8.91-39.28h-62.34l-8.9,39.28h-36.16ZM300.87,111.05h47.42l-21.22-93.76h-4.72l-21.48,93.76ZM.16,10.47c-.89,37.86-2.99,126.53,30.25,160.47,9.32,9.51,20.6,14.32,33.54,14.32h.16c16.7-.05,32.53-10.52,45.8-29.94,15.22,19.48,32.97,29.94,51.4,29.94,13.72,0,25.65-5.07,35.44-15.06,29.65-30.28,32.33-97.64,31.02-159.54-.09-4.34-.16-7.96-.16-10.66h-23.21c0,2.83.08,6.63.18,11.15.67,31.57,2.43,115.42-24.41,142.82-5.41,5.52-11.4,8.1-18.85,8.1-13.03,0-26.88-10.52-38.96-29.27,11.25-25.06,18.16-55.99,18.12-81.54-.02-14.71-2.29-26.76-6.74-35.81-5.96-12.12-15.92-18.78-28.07-18.78-11.47,0-20.91,5.97-26.61,16.8-4.29,8.16-6.46,19.04-6.46,32.31,0,27.03,8.93,60.63,23.29,87.68.04.06.08.14.11.2-9.92,17.9-21.55,28.35-31.96,28.39h-.09c-6.65,0-12.03-2.34-16.95-7.36C20.61,127.75,22.61,42.95,23.36,11.02c.11-4.61.2-8.27.2-11.03H.35c0,2.48-.09,6.02-.19,10.49ZM95.82,45.78c0-4.33.48-25.9,9.86-25.9,8.51,0,11.57,16.92,11.58,31.41.03,16.53-3.28,35.68-9,53.5-7.75-19.73-12.44-41.4-12.44-58.99h0ZM616.94.77l-.76,4.07c-1.53,5.77-2.68,11.15-3.44,16.15-.76,5-1.15,10.29-1.15,15.89v109.34c0,5.6.38,10.89,1.15,15.89.76,5,1.91,10.39,3.44,16.15l.76,4.07v1.01h-38.4v-1.01l.76-4.07c1.36-5.76,2.46-11.15,3.3-16.15.84-5,1.27-10.3,1.27-15.89V28.57l-59.24,154.77h-13.98l-60.03-154.38c-.18,2.56-.27,5.2-.27,7.92v95.1c0,7.63.81,15.13,2.42,22.5,1.61,7.37,3.69,14.79,6.23,22.24.34,1.01.67,1.96,1.02,2.8.34.86.59,1.7.76,2.54v1.27h-31.27v-1.27c.17-.84.42-1.7.76-2.54.34-.84.67-1.78,1.02-2.8,2.37-7.46,4.41-14.87,6.1-22.24,1.7-7.38,2.54-14.88,2.54-22.5V36.88c0-9.67-2.2-20.34-6.61-32.04l-1.53-3.81V.27h7.67,0s28.73-.01,28.73-.01l58.35,149.37L583.87.03v-.03h33.07v.77Z" fill="#FFFFFF"/>
-        </svg>
-      </div>
-
-      <div class="slide-footer" style="position:absolute;bottom:var(--slide-pad-y);left:var(--slide-pad-x);right:var(--slide-pad-x);z-index:2;" data-a>
-        <div class="slide-num">16 / 16</div>
-        <div class="nav-hint"><span class="nav-key">←</span><span class="nav-key">→</span></div>
+    <!-- SLIDE 18 -->
+    <div class="slide" id="slide-18">
+      <div class="closing-glow"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:0;position:relative;z-index:1;">
+        <div class="closing-dash" data-a>—</div>
+        <div class="closing-quote" data-a>WAM no se adapta al futuro. <em>Lo construye.</em></div>
+        <div class="closing-sub" data-a>WAM Innovation · Estrategia 2026</div>
+        <div class="closing-wam" data-a id="closing-wam-svg"></div>
       </div>
     </div>
-
   </div>
   <div id="progress"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script>
-    const TOTAL_SLIDES = 16;
-    let currentIndex = 0;
-    let isAnimating  = false;
+    const TOTAL = 18;
+    let cur = 0, busy = false;
 
-    function getSlides() { return document.querySelectorAll('.slide'); }
-    function getDots()   { return document.querySelectorAll('.dot'); }
+    const WAM_SVG = `<svg style="height:22px;width:auto;display:block;" viewBox="0 0 616.94 183.34" xmlns="http://www.w3.org/2000/svg"><path d="M248.48,183.34L292.23,0h64.96l43.75,183.34h-36.15l-8.91-39.28h-62.34l-8.9,39.28h-36.16ZM300.87,111.05h47.42l-21.22-93.76h-4.72l-21.48,93.76ZM.16,10.47c-.89,37.86-2.99,126.53,30.25,160.47,9.32,9.51,20.6,14.32,33.54,14.32h.16c16.7-.05,32.53-10.52,45.8-29.94,15.22,19.48,32.97,29.94,51.4,29.94,13.72,0,25.65-5.07,35.44-15.06,29.65-30.28,32.33-97.64,31.02-159.54-.09-4.34-.16-7.96-.16-10.66h-23.21c0,2.83.08,6.63.18,11.15.67,31.57,2.43,115.42-24.41,142.82-5.41,5.52-11.4,8.1-18.85,8.1-13.03,0-26.88-10.52-38.96-29.27,11.25-25.06,18.16-55.99,18.12-81.54-.02-14.71-2.29-26.76-6.74-35.81-5.96-12.12-15.92-18.78-28.07-18.78-11.47,0-20.91,5.97-26.61,16.8-4.29,8.16-6.46,19.04-6.46,32.31,0,27.03,8.93,60.63,23.29,87.68.04.06.08.14.11.2-9.92,17.9-21.55,28.35-31.96,28.39h-.09c-6.65,0-12.03-2.34-16.95-7.36C20.61,127.75,22.61,42.95,23.36,11.02c.11-4.61.2-8.27.2-11.03H.35c0,2.48-.09,6.02-.19,10.49ZM95.82,45.78c0-4.33.48-25.9,9.86-25.9,8.51,0,11.57,16.92,11.58,31.41.03,16.53-3.28,35.68-9,53.5-7.75-19.73-12.44-41.4-12.44-58.99h0ZM616.94.77l-.76,4.07c-1.53,5.77-2.68,11.15-3.44,16.15-.76,5-1.15,10.29-1.15,15.89v109.34c0,5.6.38,10.89,1.15,15.89.76,5,1.91,10.39,3.44,16.15l.76,4.07v1.01h-38.4v-1.01l.76-4.07c1.36-5.76,2.46-11.15,3.3-16.15.84-5,1.27-10.3,1.27-15.89V28.57l-59.24,154.77h-13.98l-60.03-154.38c-.18,2.56-.27,5.2-.27,7.92v95.1c0,7.63.81,15.13,2.42,22.5,1.61,7.37,3.69,14.79,6.23,22.24.34,1.01.67,1.96,1.02,2.8.34.86.59,1.7.76,2.54v1.27h-31.27v-1.27c.17-.84.42-1.7.76-2.54.34-.84.67-1.78,1.02-2.8,2.37-7.46,4.41-14.87,6.1-22.24,1.7-7.38,2.54-14.88,2.54-22.5V36.88c0-9.67-2.2-20.34-6.61-32.04l-1.53-3.81V.27h7.67,0s28.73-.01,28.73-.01l58.35,149.37L583.87.03v-.03h33.07v.77Z" fill="#FFFFFF"/></svg>`;
 
-    function updateProgress() {
-      getDots().forEach((d, i) => d.classList.toggle('is-active', i === currentIndex));
+    const slides = () => document.querySelectorAll('.slide');
+    const dots   = () => document.querySelectorAll('.dot');
+
+    function syncDots() {
+      dots().forEach((d,i) => d.classList.toggle('is-active', i === cur));
     }
 
-    function goToSlide(targetIndex, direction) {
-      if (isAnimating) return;
-      if (targetIndex < 0 || targetIndex >= TOTAL_SLIDES) return;
-      if (targetIndex === currentIndex) return;
+    function go(to, dir) {
+      if (busy || to < 0 || to >= TOTAL || to === cur) return;
+      const all  = slides();
+      const from = all[cur];
+      const dest = all[to];
+      if (!from || !dest) return;
+      busy = true;
+      onLeave(cur, from);
 
-      const slides    = getSlides();
-      const fromSlide = slides[currentIndex];
-      const toSlide   = slides[targetIndex];
-      if (!fromSlide || !toSlide) return;
-
-      isAnimating = true;
-      onSlideLeave(currentIndex, fromSlide);
-
-      const dir = direction !== undefined ? direction : (targetIndex > currentIndex ? 1 : -1);
-      const toEls = toSlide.querySelectorAll('[data-a]');
-      if (toEls.length) gsap.set(toEls, { opacity: 0 });
-
-      gsap.set(toSlide, { xPercent: dir * 100, opacity: 1 });
-      toSlide.classList.add('is-active');
+      const d = dir ?? (to > cur ? 1 : -1);
+      const els = dest.querySelectorAll('[data-a]');
+      if (els.length) gsap.set(els, { opacity: 0, y: 16 });
+      gsap.set([from, dest], { willChange: 'transform, opacity, filter' });
+      gsap.set(dest, { xPercent: d * 100, opacity: 1, filter: 'blur(4px)' });
+      dest.classList.add('is-active');
 
       const tl = gsap.timeline({
-        onComplete: () => {
-          fromSlide.classList.remove('is-active');
-          gsap.set(fromSlide, { xPercent: -dir * 100, opacity: 0 });
-          currentIndex = targetIndex;
-          isAnimating  = false;
-          updateProgress();
-          onSlideEnter(targetIndex, toSlide);
+        onComplete() {
+          from.classList.remove('is-active');
+          gsap.set(from, { xPercent: -d * 100, opacity: 0, filter: 'blur(0px)', willChange: 'auto' });
+          gsap.set(dest, { willChange: 'auto' });
+          cur = to; busy = false;
+          syncDots();
+          onEnter(to, dest);
         },
-        onInterrupt: () => { isAnimating = false; }
+        onInterrupt() {
+          gsap.set([from, dest], { willChange: 'auto' });
+          busy = false;
+        }
       });
-      tl.to(fromSlide, { xPercent: -dir * 100, duration: 0.5, ease: 'power2.inOut' }, 0);
-      tl.to(toSlide,   { xPercent: 0,           duration: 0.5, ease: 'power2.inOut' }, 0);
-      if (toEls.length) {
-        tl.to(toEls, { opacity: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out', clearProps: 'opacity' }, 0.15);
+      tl.to(from, { xPercent: -d * 100, opacity: 0, filter: 'blur(4px)', duration: 0.55, ease: 'power2.inOut' }, 0);
+      tl.to(dest, { xPercent: 0, opacity: 1, filter: 'blur(0px)', duration: 0.55, ease: 'power2.inOut' }, 0);
+      if (els.length) {
+        tl.to(els, { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: 'power2.out', clearProps: 'opacity,y' }, 0.18);
       }
     }
 
-    function goNext() { goToSlide(currentIndex + 1,  1); }
-    function goPrev() { goToSlide(currentIndex - 1, -1); }
+    const next = () => go(cur + 1,  1);
+    const prev = () => go(cur - 1, -1);
 
-    // Keyboard
     document.addEventListener('keydown', e => {
-      if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); goNext(); }
-      if (['ArrowLeft','ArrowUp'].includes(e.key))        { e.preventDefault(); goPrev(); }
+      if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); next(); }
+      if (['ArrowLeft','ArrowUp'].includes(e.key))        { e.preventDefault(); prev(); }
     });
 
-    // Click
-    document.getElementById('presentation').addEventListener('click', e => {
-      if (e.target.closest('.dot')) return;
-      e.clientX > window.innerWidth / 2 ? goNext() : goPrev();
-    });
-
-    // Touch
-    let touchStartX = 0, touchStartY = 0;
+    let tx = 0, ty = 0;
     document.addEventListener('touchstart', e => {
-      touchStartX = e.changedTouches[0].clientX;
-      touchStartY = e.changedTouches[0].clientY;
+      tx = e.changedTouches[0].clientX;
+      ty = e.changedTouches[0].clientY;
     }, { passive: true });
     document.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      const dy = e.changedTouches[0].clientY - touchStartY;
-      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) dx < 0 ? goNext() : goPrev();
+      const dx = e.changedTouches[0].clientX - tx;
+      const dy = e.changedTouches[0].clientY - ty;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) dx < 0 ? next() : prev();
     }, { passive: true });
 
-    // Progress dots
-    function buildProgress() {
-      const container = document.getElementById('progress');
-      container.innerHTML = '';
-      for (let i = 0; i < TOTAL_SLIDES; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'dot' + (i === 0 ? ' is-active' : '');
-        dot.addEventListener('click', () => goToSlide(i));
-        container.appendChild(dot);
+    function buildDots() {
+      const c = document.getElementById('progress');
+      c.innerHTML = '';
+      for (let i = 0; i < TOTAL; i++) {
+        const d = document.createElement('div');
+        d.className = 'dot' + (i === 0 ? ' is-active' : '');
+        d.addEventListener('click', () => go(i));
+        c.appendChild(d);
       }
     }
 
-    // ==================== GSAP ANIMATIONS ====================
+    let coverStarted = false;
+    function onEnter(i, el) {
+      if (i === 0 && !coverStarted) { coverStarted = true; startCover(); }
+      if (i === 6)  countUp(el);
+      if (i === 12) animateGTM();
+      if (i === 14) countUp(el);
+      if (i === 17) {
+        const c = document.getElementById('closing-wam-svg');
+        if (c && !c.innerHTML) c.innerHTML = WAM_SVG.replace('height:22px', 'height:32px');
+      }
+    }
 
-    function startBreathing() {
+    function animateGTM() {
+      const line = document.getElementById('gtm-line');
+      if (!line) return;
+      gsap.set(line, { strokeDashoffset: 900 });
+      gsap.to(line, { strokeDashoffset: 0, duration: 1.2, ease: 'power2.inOut', delay: 0.4 });
+    }
+
+    function countUp(slideEl) {
+      slideEl.querySelectorAll('[data-count]').forEach(el => {
+        const target = parseFloat(el.dataset.count);
+        const suffix = el.dataset.suffix ?? '';
+        const isFloat = String(target).includes('.');
+        gsap.fromTo({ v: 0 }, { v: target }, {
+          duration: 1.2,
+          ease: 'power2.out',
+          delay: 0.3,
+          onUpdate() {
+            const val = isFloat ? this.targets()[0].v.toFixed(1) : Math.round(this.targets()[0].v);
+            el.textContent = val + suffix;
+          }
+        });
+      });
+    }
+    function onLeave(i, el) {}
+
+    function startCover() {
+      document.getElementById('wam-logo-svg').innerHTML = WAM_SVG;
       const title = document.getElementById('cover-title');
       const glow  = document.getElementById('cover-glow');
-      if (title) gsap.to(title, { scale: 1.018, duration: 3.2, ease: 'power1.inOut', yoyo: true, repeat: -1, transformOrigin: 'left center' });
-      if (glow)  gsap.to(glow,  { opacity: .9, scale: 1.1, duration: 2.8, ease: 'power1.inOut', yoyo: true, repeat: -1, delay: .6 });
+      gsap.to(title, { scale: 1.016, duration: 3.4, ease: 'power1.inOut', yoyo: true, repeat: -1, transformOrigin: 'left center' });
+      gsap.to(glow,  { opacity: .85, scale: 1.12, duration: 3.0, ease: 'power1.inOut', yoyo: true, repeat: -1, delay: .7 });
+      startParticles();
     }
 
-    function onSlideEnter(index, slideEl) {}
-    function onSlideLeave(index, slideEl) {}
+    function startParticles() {
+      const canvas = document.getElementById('cover-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let W, H, pts;
 
-    // Init
+      function resize() {
+        W = canvas.width  = canvas.offsetWidth;
+        H = canvas.height = canvas.offsetHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      const N = Math.min(60, Math.floor(window.innerWidth / 20));
+      pts = Array.from({length: N}, () => ({
+        x: Math.random() * W, y: Math.random() * H,
+        vx: (Math.random() - .5) * .25, vy: (Math.random() - .5) * .25,
+        r: Math.random() * 1.5 + .5,
+        a: Math.random()
+      }));
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        pts.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          p.a += .004;
+          if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+          if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+          const alpha = (.3 + .2 * Math.sin(p.a));
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,126,255,${alpha})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
     function init() {
-      buildProgress();
-      const slides = getSlides();
-      slides.forEach((s, i) => {
-        if (i === 0) { s.classList.add('is-active'); gsap.set(s, { opacity: 1, xPercent: 0 }); }
+      buildDots();
+      slides().forEach((s,i) => {
+        if (i === 0) { s.classList.add('is-active'); gsap.set(s, { opacity: 1, xPercent: 0, filter: 'blur(0px)' }); }
         else          { gsap.set(s, { opacity: 0, xPercent: 100 }); }
       });
-      updateProgress();
-      startBreathing();
+      syncDots();
       document.fonts.ready.then(() => {
-        const els = slides[0] ? slides[0].querySelectorAll('[data-a]') : [];
-        if (els.length) gsap.fromTo(els, { opacity: 0 }, { opacity: 1, duration: 0.45, stagger: 0.12, ease: 'power2.out', clearProps: 'opacity' });
+        const els = slides()[0]?.querySelectorAll('[data-a]') ?? [];
+        if (els.length) gsap.fromTo(els, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, stagger: 0.1, ease: 'power2.out', clearProps: 'opacity,y' });
+        onEnter(0, slides()[0]);
       });
     }
-
     init();
   </script>
 </body>
